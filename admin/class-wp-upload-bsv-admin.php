@@ -97,6 +97,7 @@ class Wp_Upload_Bsv_Admin {
 		 */
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-upload-bsv-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( 'javascript-money-button', 'https://www.moneybutton.com/moneybutton.js');
 
 	}
 
@@ -126,7 +127,7 @@ class Wp_Upload_Bsv_Admin {
 		?>
 			<div class="wrap">
 				<h2>Mirror Posts to BSV</h2>
-
+				<div id='money-button'></div>
 			</div>
 		<?php
 		}

@@ -28,5 +28,22 @@
 	 * Although scripts in the WordPress core, Plugins and Themes may be
 	 * practising this, we should strive to set a better example in our own work.
 	 */
+	$(function() {
+		// $('#money-button').text('Money Button');
+		const div = document.getElementById('money-button');
+		
+		const b = '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut';
+		const script = 'OP_FALSE OP_RETURN ' + b + ' 48656c6c6f20576f726c64';
+		console.log(script);
+
+		moneyButton.render(div, {
+			outputs: [{
+				script: script,
+				amount: '0',
+				currency: 'BSV'
+			}]
+		})
+
+	})
 
 })( jQuery );
