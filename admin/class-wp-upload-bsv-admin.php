@@ -100,4 +100,37 @@ class Wp_Upload_Bsv_Admin {
 
 	}
 
+		/**
+	 * Add a submenu page for this plugin to the Settings main menu
+	 * 
+	 */
+	public function setup_plugin_management_menu() {
+
+		add_management_page(
+			'Upload Posts to BSV', 					// The title to be displayed in the browser window for this page.
+			'Mirror to BSV',					// The text to be displayed for this menu item
+			'manage_options',					// Which type of users can see this menu item
+			'wpbsv_upload',			// The unique ID - that is, the slug - for this menu item
+			array( $this, 'render_management_page_content')				// The name of the function to call when rendering this menu's page
+		);
+
+	}
+		/**
+	 * Renders the contents of the settings page
+	 */
+	public function render_management_page_content() {
+		// check user capabilities
+		if ( ! current_user_can( 'manage_options' ) ) {
+		  return;
+		}
+		?>
+			<div class="wrap">
+				<h2>Mirror Posts to BSV</h2>
+
+			</div>
+		<?php
+		}
+	
+	
+
 }
