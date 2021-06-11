@@ -128,6 +128,7 @@ class Wp_Upload_Bsv_Admin {
 			<div class="wrap">
 				<h2>Mirror Posts to BSV</h2>
 				<div id='money-button'></div>
+				<p id='wpbsv-message'></p>
 			</div>
 		<?php
 		}
