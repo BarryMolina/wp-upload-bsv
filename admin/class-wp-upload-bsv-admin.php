@@ -61,21 +61,7 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Wp_Upload_Bsv_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Wp_Upload_Bsv_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-upload-bsv-admin.css', array(), $this->version, 'all' );
-		// wp_enqueue_script( 'react-app-css', plugin_dir_url( __FILE__ ) . 'admin-panel/build/static/css/main.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -89,28 +75,22 @@ class Wp_Upload_Bsv_Admin {
 			return;
 		}
 
-		// $js_to_load = '';
+		$js_to_load = '';
 		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
 			// DEV React dynamic loading
-			// $js_to_load = 'http://localhost:3000/static/js/bundle.js';
+			$js_to_load = 'http://localhost:8080/bundle.js';
 			// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		}
-		// else {
-		// 	$js_to_load = plugin_dir_url( __FILE__ ) . 'admin-panel/build/static/js/main.js';
-
-		// }
-		wp_enqueue_script( 'react-admin-panel', plugin_dir_url( __FILE__ ) . 'react-admin-panel/build/static/js/main.js', array(), $this->version, true );
-		// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
-		// wp_enqueue_script('ghost_inspector_js', 'http://127.0.0.1:3000/static/js/bundle.js', '', mt_rand(10,1000), true);
-		// wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, false );
-		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-upload-bsv-admin.js', array( 'jquery' ), $this->version, false );
-		// wp_enqueue_script( 'javascript-money-button', 'https://www.moneybutton.com/moneybutton.js');
-
-
+		else {
+			// Use production build
+			$js_to_load = plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js';
+		}
+		wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, true );
+		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js', array(), $this->version, true );
 	}
 
-		/**
-	 * Add a submenu page for this plugin to the Settings main menu
+	/**
+	 * Add a submenu page for this plugin to the Tools menu
 	 * 
 	 */
 	public function setup_plugin_management_menu() {
@@ -142,14 +122,14 @@ class Wp_Upload_Bsv_Admin {
 		<?php
 		}
 	
-	public function se_inspect_scripts() {
-		global $wp_scripts;
-		echo "<h2>Enqueued JS Scripts</h2><ul>";
-		foreach( $wp_scripts->queue as $handle ) :
-			echo "<li>" . $handle . "</li>";
-		endforeach;
-		echo "</ul>";
-	}
+	// public function se_inspect_scripts() {
+	// 	global $wp_scripts;
+	// 	echo "<h2>Enqueued JS Scripts</h2><ul>";
+	// 	foreach( $wp_scripts->queue as $handle ) :
+	// 		echo "<li>" . $handle . "</li>";
+	// 	endforeach;
+	// 	echo "</ul>";
+	// }
 	
 
 }

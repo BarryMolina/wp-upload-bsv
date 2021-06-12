@@ -1,6 +1,9 @@
 import React from 'react'
 import { render } from 'react-dom'
+import MoneyButton from '@moneybutton/react-money-button'
 
-import HelloWorld from './HelloWorld'
+import AdminPanel from './components/AdminPanel'
 
-render(<HelloWorld />, document.getElementById('wpbsv-admin-panel'))
+// import HelloWorld from './components/HelloWorld'
+
+render(<AdminPanel />, document.getElementById('wpbsv-admin-panel'))
