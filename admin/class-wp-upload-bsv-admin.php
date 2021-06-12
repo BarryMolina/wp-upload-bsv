@@ -83,7 +83,7 @@ class Wp_Upload_Bsv_Admin {
 		}
 		else {
 			// Use production build
-			$js_to_load = plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js';
+			$js_to_load = plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js';
 		}
 		wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, true );
 		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js', array(), $this->version, true );
