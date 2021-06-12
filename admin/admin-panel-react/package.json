@@ -1,0 +1,42 @@
+{
+  "name": "admin-panel-react",
+  "version": "1.0.0",
+  "description": "A wordpress plugin admin panel built in react",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+	"start": "webpack serve --mode=development --open",
+
+	"build": "webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BarryMolina/wp-upload-bsv.git"
+  },
+  "keywords": [
+    "bsv",
+    "wordpress"
+  ],
+  "author": "Barry Molina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BarryMolina/wp-upload-bsv/issues"
+  },
+  "homepage": "https://github.com/BarryMolina/wp-upload-bsv#readme",
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.5",
+    "@babel/preset-env": "^7.14.5",
+    "@babel/preset-react": "^7.14.5",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^5.2.6",
+    "html-webpack-plugin": "^5.3.1",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
+  }
+}

@@ -90,16 +90,17 @@ class Wp_Upload_Bsv_Admin {
 		}
 
 		// $js_to_load = '';
-		// if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-		// 	// DEV React dynamic loading
-		// 	$js_to_load = 'http://localhost:3000/static/js/bundle.js';
-		// }
+		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+			// DEV React dynamic loading
+			// $js_to_load = 'http://localhost:3000/static/js/bundle.js';
+			// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
+		}
 		// else {
 		// 	$js_to_load = plugin_dir_url( __FILE__ ) . 'admin-panel/build/static/js/main.js';
 
 		// }
-		// wp_enqueue_script( 'react-app-js', plugin_dir_url( __FILE__ ) . 'admin-panel/build/static/js/main.js', array(), $this->version, true );
-		wp_enqueue_script( 'react-app-js', 'http://localhost:8080/main.js', array(), $this->version, true );
+		wp_enqueue_script( 'react-admin-panel', plugin_dir_url( __FILE__ ) . 'react-admin-panel/build/static/js/main.js', array(), $this->version, true );
+		// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		// wp_enqueue_script('ghost_inspector_js', 'http://127.0.0.1:3000/static/js/bundle.js', '', mt_rand(10,1000), true);
 		// wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, false );
 		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-upload-bsv-admin.js', array( 'jquery' ), $this->version, false );
