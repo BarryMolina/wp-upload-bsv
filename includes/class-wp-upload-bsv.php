@@ -158,6 +158,7 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'setup_plugin_management_menu' );
+		$this->loader->add_action( 'publish_post', $plugin_admin, 'uploadPost');
 		// $this->loader->add_action( 'wp_print_scripts', $plugin_admin, 'se_inspect_scripts' );
 
 	}

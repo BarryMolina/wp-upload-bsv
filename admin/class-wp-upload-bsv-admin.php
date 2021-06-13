@@ -70,22 +70,54 @@ class Wp_Upload_Bsv_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts($hook) {
-		// Enqueue script only for this page
-		if ('tools_page_wpbsv_upload' !== $hook) {
-			return;
-		}
+		// true if on admin tool panel
+		$admin_page = ('tools_page_wpbsv_upload' === $hook);
+		// true if in development mode
+		$dev = (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1')));
 
-		$js_to_load = '';
-		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-			// DEV React dynamic loading
-			$js_to_load = 'http://localhost:8080/bundle.js';
-			// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
+		if ($dev) {
+			if ($admin_page) {
+				// wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
+			}
+			// wp_enqueue_script( 'wpbsv-auto-upload', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		}
+		// Production scripts
 		else {
-			// Use production build
-			$js_to_load = plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js';
+			if ($admin_page) {
+				// wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
+			}
+			// wp_enqueue_script( 'wpbsv-auto-upload', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
 		}
-		wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, true );
+		// enqueue on post update
+		// echo "here";
+		// global $post;
+		// if ('post.php' == $hook && 'post' == $post->post_type && isset($_GET['message'])) {
+		// 	echo "hi";
+		// 	$message_id = absint($_GET['message']);
+			wp_register_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
+			// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
+		// 	$data = array( 'Message' => $message_id);
+		// 	wp_localize_script( 'wpbsv-invisible-moneybutton', 'wpbsvPost', $data);
+			
+		// }
+
+		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
+		// Enqueue script only for this page
+		// if ('tools_page_wpbsv_upload' !== $hook) {
+		// 	return;
+		// }
+
+		// $js_to_load = '';
+		// if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+			// DEV React dynamic loading
+			// $js_to_load = 'http://localhost:8080/bundle.js';
+			// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
+		// }
+		// else {
+		// 	// Use production build
+		// 	$js_to_load = plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js';
+		// }
+		// wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, true );
 		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js', array(), $this->version, true );
 	}
 
@@ -119,6 +151,7 @@ class Wp_Upload_Bsv_Admin {
 				<p id='wpbsv-message'></p>
 			</div>
 			<div id="wpbsv-admin-panel"></div>
+			<div id="wpbsv-auto-upload"></div>
 		<?php
 		}
 	
@@ -130,6 +163,26 @@ class Wp_Upload_Bsv_Admin {
 	// 	endforeach;
 	// 	echo "</ul>";
 	// }
-	
+	public function onPublishPost() {
+		echo 'post published';
+	}
 
+	public function uploadPost() {
+		echo "hi";
+			wp_enqueue_script('wpbsv-invisible-moneybutton');
+		// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false );
+		// Pass nonce to ajax script
+		// $js_post_data = 'const post = ' . json_encode($post);
+
+		// wp_add_inline_script( 'wpbsv-invisible-moneybutton', 'const post = "post data"', 'before');
+		// wp_localize_script(
+		// 	'wpbsv-invisible-moneybutton',
+		// 	'wpbsv_ajax_obj', 
+		// 	array(
+		// 		'nonce' => wp_create_nonce('wpnbe_refresh_nonce'),
+		// 		'post' => $post
+		// 	)
+		// );
+
+	}
 }
