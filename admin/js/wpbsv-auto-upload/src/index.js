@@ -13,5 +13,5 @@ const onPostPublished = () => {
 	console.log('post published')
 }
 
-// globalHooks.addAction('post_published', 'wpbsv-auto-upload', onPostPublished)
-globalHooks.doAction('publish_post')
+globalHooks.addAction('publish_post', 'wpbsv-auto-upload', onPostPublished)
+// globalHooks.doAction('publish_post')

@@ -77,14 +77,14 @@ class Wp_Upload_Bsv_Admin {
 
 		if ($dev) {
 			if ($admin_page) {
-				// wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
+				wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
 			}
 			// wp_enqueue_script( 'wpbsv-auto-upload', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		}
 		// Production scripts
 		else {
 			if ($admin_page) {
-				// wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
+				wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
 			}
 			// wp_enqueue_script( 'wpbsv-auto-upload', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
 		}
@@ -94,7 +94,7 @@ class Wp_Upload_Bsv_Admin {
 		// if ('post.php' == $hook && 'post' == $post->post_type && isset($_GET['message'])) {
 		// 	echo "hi";
 		// 	$message_id = absint($_GET['message']);
-			wp_register_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
+			// wp_register_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
 			// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
 		// 	$data = array( 'Message' => $message_id);
 		// 	wp_localize_script( 'wpbsv-invisible-moneybutton', 'wpbsvPost', $data);
@@ -167,10 +167,11 @@ class Wp_Upload_Bsv_Admin {
 		echo 'post published';
 	}
 
-	public function uploadPost() {
-		echo "hi";
-			wp_enqueue_script('wpbsv-invisible-moneybutton');
+	public function uploadPost($postid, $post) {
+
+			// wp_enqueue_script('wpbsv-invisible-moneybutton');
 		// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false );
+		// do_action('admin-enqueue-scripts');
 		// Pass nonce to ajax script
 		// $js_post_data = 'const post = ' . json_encode($post);
 
