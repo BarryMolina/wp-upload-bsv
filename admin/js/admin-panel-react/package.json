@@ -24,6 +24,7 @@
   "homepage": "https://github.com/BarryMolina/wp-upload-bsv#readme",
   "dependencies": {
     "@material-ui/core": "^4.11.4",
+    "@material-ui/icons": "^4.11.2",
     "@moneybutton/react-money-button": "^0.38.6",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

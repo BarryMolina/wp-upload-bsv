@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import styled from 'styled-components'
 import MoneyButton from '@moneybutton/react-money-button'
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,14 +12,16 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-// import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-// import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import Collapse from '@material-ui/core/Collapse';
 import Box from '@material-ui/core/Box';
 import withSelections from 'react-item-select'
+import { forEach } from 'lodash';
 
+const wpURL = 'http://localhost:8888/wordpress/wp-json'
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
@@ -59,31 +62,40 @@ const rows = [
   createData(5,'Gingerbread', 356, 16.0, 49, 3.9),
 ];
 
-const Row = ({ row, isItemSelected, handle }) => {
-	const [open, setOpen] = useState(false)
+const Row = ( props ) => {
+	const { 
+		row, 
+		isItemSelected, 
+		handleClick,
+		handleExpand,
+		isExpanded
+	} = props
+
+	// const [open, setOpen] = useState(false)
 	const classes = useStyles();
+
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
 				<TableCell padding="checkbox">
 					<Checkbox
-						checked={isItemSelected(row.id)} onClick={() => handle(row)}
+						checked={isItemSelected(row.id)} onClick={() => handleClick(row.id)}
 					/>
 				</TableCell>
 				<TableCell>
-					<IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-						{open ? '>' : 'v'}
+					<IconButton aria-label="expand row" size="small" onClick={() => handleExpand(row.id)}>
+						{isExpanded(row.id) ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
 					</IconButton>
 				</TableCell>
+				<TableCell>Mirrored</TableCell>
 				<TableCell component="th" scope="row">
-					{row.name}
+					{row.title.rendered}
 				</TableCell>
-				<TableCell align="right">{row.calories}</TableCell>
-				<TableCell align="right">{row.fat}</TableCell>
-				<TableCell align="right">{row.carbs}</TableCell>
-				<TableCell align="right">{row.protein}</TableCell>
+				<TableCell align="right">{row.author}</TableCell>
+				<TableCell align="right">{row.date}</TableCell>
+				<TableCell align="right">{row.type}</TableCell>
 			</TableRow>
-			<TableRow>
+			{/* <TableRow>
 				<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
 					<Collapse in={open} timeout="auto" unmountOnExit>
 						<Box margin={1}>
@@ -117,7 +129,7 @@ const Row = ({ row, isItemSelected, handle }) => {
 						</Box>
 					</Collapse>
 				</TableCell>
-			</TableRow>
+			</TableRow> */}
 		</React.Fragment>
 	)
 }
@@ -137,16 +149,61 @@ const AdminPanel = (props) => {
 		selections,
   } = props;
 
+	const [posts, setPosts] = useState([])
+	const [expanded, setExpanded] = useState([])
+
+	useEffect(() => {
+		console.log("Effect")
+		axios.get(wpURL + '/wp/v2/posts')
+			.then((res) => {
+				// console.log(res)
+				setPosts(res.data)
+			})
+			.catch((err) => {
+				console.log(err)
+			})
+	}, [])
+
 	const classes = useStyles();
 
 	const handleUploadClick = () => {
 		console.log(selections)
 	}
-	const handle = (row) => {
-		handleSelect(row.id)
+	const handleClick = (row) => {
+		handleSelect(row)
 		// console.log("clicked " + row.id)
 		// console.log(selections)
 	}
+
+	const handleExpand = (row) => {
+		if (expanded.includes(row)) {
+			setExpanded(expanded.filter((value) => ( value !== row)))
+		}
+		else {
+			setExpanded([...expanded, row])
+			console.log('running')
+		}
+		console.log(expanded)
+	}
+
+	const isExpanded = (row) => {
+		return expanded.includes(row)
+	}
+	
+	const areAllExpanded = () => {
+		return posts.length === expanded.length
+	}
+
+	const toggleExpandAll = () => {
+		if (posts.length === expanded.length) {
+			setExpanded([])
+		}
+		else {
+			setExpanded(posts.map( post => post.id ))
+		}
+	}
+	// console.log(expanded)
+	// console.log(selections)
 	return (
 		<div>
 			<TableContainer component={Paper}>
@@ -155,27 +212,35 @@ const AdminPanel = (props) => {
 						<TableRow>
 							<TableCell padding="checkbox">
 								<Checkbox
-									checked={areAllSelected(rows)}
-									onClick={() => handleSelectAll(rows)}
-									indeterminate={areAllIndeterminate(rows)}
+									checked={areAllSelected(posts)}
+									onClick={() => handleSelectAll(posts)}
+									indeterminate={areAllIndeterminate(posts)}
 								/>
 							</TableCell>
 							<TableCell>
-								<IconButton aria-label="expand row" size="small" >
-									{'v'}
+								<IconButton aria-label="expand row" size="small" onClick={() => toggleExpandAll()} >
+									{areAllExpanded() ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon /> }
 								</IconButton>
 							</TableCell>
-							<TableCell>Dessert (100g serving)</TableCell>
-							<TableCell align="right">Calories</TableCell>
-							<TableCell align="right">Fat&nbsp;(g)</TableCell>
-							<TableCell align="right">Carbs&nbsp;(g)</TableCell>
+							<TableCell>Mirrored</TableCell>
+							<TableCell>Title</TableCell>
+							<TableCell align="right">Author</TableCell>
+							<TableCell align="right">Date</TableCell>
+							<TableCell align="right">Type</TableCell>
 							<TableCell align="right">Protein&nbsp;(g)</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{rows.map((row) => { 
+						{posts.map((post) => { 
 							return (
-								<Row key={row.id} row={row} isItemSelected={isItemSelected} handle={handle}/>
+								<Row 
+									key={post.id} 
+									row={post} 
+									isItemSelected={isItemSelected} 
+									handleClick={handleClick}
+									handleExpand={handleExpand}
+									isExpanded={isExpanded}
+								/>
 							)
 						})}
 					</TableBody>
