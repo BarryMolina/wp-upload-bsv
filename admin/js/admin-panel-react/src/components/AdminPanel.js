@@ -153,7 +153,6 @@ const AdminPanel = (props) => {
 	const [expanded, setExpanded] = useState([])
 
 	useEffect(() => {
-		console.log("Effect")
 		axios.get(wpURL + '/wp/v2/posts')
 			.then((res) => {
 				// console.log(res)
@@ -171,8 +170,6 @@ const AdminPanel = (props) => {
 	}
 	const handleClick = (row) => {
 		handleSelect(row)
-		// console.log("clicked " + row.id)
-		// console.log(selections)
 	}
 
 	const handleExpand = (row) => {
@@ -181,9 +178,7 @@ const AdminPanel = (props) => {
 		}
 		else {
 			setExpanded([...expanded, row])
-			console.log('running')
 		}
-		console.log(expanded)
 	}
 
 	const isExpanded = (row) => {
@@ -202,8 +197,7 @@ const AdminPanel = (props) => {
 			setExpanded(posts.map( post => post.id ))
 		}
 	}
-	// console.log(expanded)
-	// console.log(selections)
+
 	return (
 		<div>
 			<TableContainer component={Paper}>

@@ -62,6 +62,8 @@ class Wp_Upload_Bsv_Admin {
 	public function enqueue_styles() {
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-upload-bsv-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
 	}
 
 	/**
@@ -77,6 +79,7 @@ class Wp_Upload_Bsv_Admin {
 
 		if ($dev) {
 			if ($admin_page) {
+				wp_enqueue_script( 'wpbsv-admin-panel-svelte', 'http://localhost:5000/build/bundle.js', array(), $this->version, true );
 				wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
 			}
 			// wp_enqueue_script( 'wpbsv-auto-upload', 'http://localhost:8080/bundle.js', array(), $this->version, true );
@@ -150,6 +153,7 @@ class Wp_Upload_Bsv_Admin {
 				<div id='money-button'></div>
 				<p id='wpbsv-message'></p>
 			</div>
+			<div id="wpbsv-admin-panel-svelte"></div>
 			<div id="wpbsv-admin-panel"></div>
 			<div id="wpbsv-auto-upload"></div>
 		<?php
