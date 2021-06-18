@@ -1,38 +1,92 @@
 <script>
 	import axios from 'axios'
-	export let name;
+	import DataTable, { Head, Body, Row, Cell } from '@smui/data-table'
+	import Checkbox from '@smui/checkbox'
+	import IconButton, { Icon } from '@smui/icon-button'
+	import Button, { Label } from '@smui/button'
+
 
 	const wpURL = 'http://localhost:8888/wordpress/wp-json'
 	let posts = []
-	let checked = {}
-	$: areAllChecked = (posts.every( post => (checked[post.id] === true)))
+	let expanded = {}
+	let selected = []
+	$: areAllExpanded = (posts.every( post => (expanded[post.id] === true)))
+
+	const btnSendHandler = () => {
+		console.log(expanded)
+	}
+
+	const toggleExpandAll = () => {
+		if (areAllExpanded) {
+			posts.forEach(post => expanded[post.id] = false)
+		}
+		else {
+			posts.forEach(post => { expanded[post.id] = true })
+		}
+	}
 
 	axios.get(wpURL + '/wp/v2/posts')
 		.then((res) => {
 			posts = res.data
 			console.log(posts)
+			posts.forEach(post => expanded[post.id] = false)
 		})
 		.catch((err) => {
 			console.log(err)
 		})
 
-	const btnSendHandler = () => {
-		console.log(checked)
-		console.log(areAllChecked)
-	}
-
-	const checkAllHandler = () => {
-		if (areAllChecked) {
-			checked = {}
-		}
-		else {
-			posts.forEach(post => { checked[post.id] = true })
-		}
-	}
-	
 </script>
 
-<main>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/svelte-material-ui@4.0.0/bare.min.css" />
+<!-- <main> -->
+	<DataTable style="width: 100%;">
+		<Head>
+			<Row>
+				<Cell checkbox>
+					<Checkbox />
+				</Cell>
+				<Cell style="width: 100px;">
+						<IconButton on:click={toggleExpandAll} toggle bind:pressed={areAllExpanded}>
+							<Icon class="material-icons" on>expand_less</Icon>
+							<Icon class="material-icons">expand_more</Icon>
+						</IconButton>
+				</Cell>
+				<Cell>Title</Cell>
+				<Cell>Author</Cell>
+				<Cell>Date</Cell>
+				<Cell>Mirrored</Cell>
+			</Row>
+		</Head>
+		<Body>
+			{#each posts as post}
+				<Row>
+					<Cell checkbox>
+						<Checkbox
+							bind:group={selected}
+							value={post}
+							valueKey={post.id}
+						/>
+					</Cell>
+					<Cell>
+						<IconButton toggle bind:pressed={expanded[post.id]}>
+							<Icon class="material-icons" on>expand_less</Icon>
+							<Icon class="material-icons">expand_more</Icon>
+						</IconButton>
+					</Cell>
+					<Cell>{post.title.rendered}</Cell>
+					<Cell>{post.author}</Cell>
+					<Cell>{post.date}</Cell>
+					<Cell>Mirrored</Cell>
+				</Row>
+			{/each}
+		</Body>
+	</DataTable>
+	<Button on:click={btnSendHandler} variant="raised">
+		<Label>send</Label>
+	</Button>
+	<!-- <span class="material-icons">expand_more</span>
+	<span class="material-icons">expand_less</span>
 	<table>
 		<thead>
 			<tr>
@@ -57,8 +111,7 @@
 			{/each}
 		</tbody>
 	</table>
-	<button on:click={btnSendHandler}>Send</button>
-</main>
+</main> -->
 
 <style>
 	main {

@@ -18,7 +18,12 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
+    "@smui/button": "^4.2.0",
+    "@smui/checkbox": "^4.2.0",
+    "@smui/data-table": "^4.2.0",
+    "@smui/icon-button": "^4.2.0",
     "axios": "^0.21.1",
-    "sirv-cli": "^1.0.0"
+    "sirv-cli": "^1.0.0",
+    "svelte-material-ui": "^4.2.0"
   }
 }
