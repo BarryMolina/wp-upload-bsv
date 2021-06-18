@@ -19,6 +19,7 @@ import Typography from '@material-ui/core/Typography';
 import Collapse from '@material-ui/core/Collapse';
 import Box from '@material-ui/core/Box';
 import withSelections from 'react-item-select'
+import Link from '@material-ui/core/Link';
 import { forEach } from 'lodash';
 
 const wpURL = 'http://localhost:8888/wordpress/wp-json'
@@ -89,7 +90,7 @@ const Row = ( props ) => {
 				</TableCell>
 				<TableCell>Mirrored</TableCell>
 				<TableCell component="th" scope="row">
-					{row.title.rendered}
+					<Link href={row.link} target="_blank">{row.title.rendered}</Link>
 				</TableCell>
 				<TableCell align="right">{row.author}</TableCell>
 				<TableCell align="right">{row.date}</TableCell>
@@ -167,6 +168,20 @@ const AdminPanel = (props) => {
 
 	const handleUploadClick = () => {
 		console.log(selections)
+		console.log(ajaxurl)
+
+		// Need FormData object to submit axios request
+		let formData = new FormData
+		formData.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
+		formData.append('action', 'wpbsv_send_transaction')
+
+		axios.post(ajaxurl, formData)
+			.then( res => {
+				console.log(res)
+			})
+			.catch( err => {
+				console.log(err)
+			})
 	}
 	const handleClick = (row) => {
 		handleSelect(row)
@@ -217,7 +232,7 @@ const AdminPanel = (props) => {
 								</IconButton>
 							</TableCell>
 							<TableCell>Mirrored</TableCell>
-							<TableCell>Title</TableCell>
+							<TableCell>Post</TableCell>
 							<TableCell align="right">Author</TableCell>
 							<TableCell align="right">Date</TableCell>
 							<TableCell align="right">Type</TableCell>

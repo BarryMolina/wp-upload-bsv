@@ -62,8 +62,8 @@ class Wp_Upload_Bsv_Admin {
 	public function enqueue_styles() {
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-upload-bsv-admin.css', array(), $this->version, 'all' );
-		wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
-		wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
+		// wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
+		// wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
 	}
 
 	/**
@@ -73,24 +73,36 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function enqueue_scripts($hook) {
 		// true if on admin tool panel
-		$admin_page = ('tools_page_wpbsv_upload' === $hook);
+		// $admin_page = ('tools_page_wpbsv_upload' === $hook);
 		// true if in development mode
 		$dev = (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1')));
 
-		if ($dev) {
-			if ($admin_page) {
-				wp_enqueue_script( 'wpbsv-admin-panel-svelte', 'http://localhost:5000/build/bundle.js', array(), $this->version, true );
-				wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
-			}
+		// Only enqueue script on tools page
+		if ('tools_page_wpbsv_upload' !== $hook) {
+			return;
+		}
+
+		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+			// if ($admin_page) {
+				// wp_enqueue_script( 'wpbsv-admin-panel-svelte', 'http://localhost:5000/build/bundle.js', array(), $this->version, true );
+			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
+			// }
 			// wp_enqueue_script( 'wpbsv-auto-upload', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		}
 		// Production scripts
 		else {
-			if ($admin_page) {
-				wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
-			}
+			// if ($admin_page) {
+			wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
+			// }
 			// wp_enqueue_script( 'wpbsv-auto-upload', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
 		}
+		wp_localize_script(
+      'wpbsv-admin-panel-react',
+      'wpbsv_ajax_obj', 
+      array(
+        'nonce' => wp_create_nonce('wpbsv_transaction_nonce')
+      )
+    );
 		// enqueue on post update
 		// echo "here";
 		// global $post;
@@ -171,23 +183,22 @@ class Wp_Upload_Bsv_Admin {
 		echo 'post published';
 	}
 
-	public function uploadPost($postid, $post) {
-
-			// wp_enqueue_script('wpbsv-invisible-moneybutton');
-		// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false );
-		// do_action('admin-enqueue-scripts');
-		// Pass nonce to ajax script
-		// $js_post_data = 'const post = ' . json_encode($post);
-
-		// wp_add_inline_script( 'wpbsv-invisible-moneybutton', 'const post = "post data"', 'before');
-		// wp_localize_script(
-		// 	'wpbsv-invisible-moneybutton',
-		// 	'wpbsv_ajax_obj', 
-		// 	array(
-		// 		'nonce' => wp_create_nonce('wpnbe_refresh_nonce'),
-		// 		'post' => $post
-		// 	)
-		// );
-
+	public function uploadPosts($postIds = []) {
+		return true;
 	}
+	/**
+   * Handle send button click from tools page
+   *
+   * @return      json       The current date and time if update successful, error if not.
+   */
+  public function send_transaction_handler() {
+		echo "hereeeeeeeeeeeeeeeeeeeeeeeeeee";
+    check_ajax_referer('wpbsv_transaction_nonce');
+    $success = $this->uploadPosts();
+    if ($success) {
+      wp_send_json( esc_html(current_time('Y-m-d @ g:i:s a')));
+    }
+    wp_send_json_error( 'Error sending transaction(s)', '500' );
+
+  }
 }
