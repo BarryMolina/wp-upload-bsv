@@ -158,6 +158,7 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'setup_plugin_management_menu' );
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'markdown_test' );
 		// $this->loader->add_action( 'wp_ajax_wpbsv_send_transaction', $plugin_admin, 'send_transaction_handler' );
 		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'register_bsv_api' );
 

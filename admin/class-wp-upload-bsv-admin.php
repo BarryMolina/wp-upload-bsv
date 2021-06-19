@@ -21,6 +21,7 @@
  * @author     Barry Molina <bazzaboy@gmail.com>
  */
 class Wp_Upload_Bsv_Admin {
+	// use League\HTMLToMarkdown\HtmlConverter;
 
 	/**
 	 * The ID of this plugin.
@@ -51,7 +52,13 @@ class Wp_Upload_Bsv_Admin {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->load_dependencies();
 
+	}
+
+	private function load_dependencies() {
+		// Load html-to-markdown
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 	}
 
 	/**
@@ -186,5 +193,131 @@ class Wp_Upload_Bsv_Admin {
 			// }
 			'permission_callback' => '__return_true'
 		));
+	}
+	public function markdown_test() {
+
+		// $markdown = $this->create_post_markdown(55);
+		$markdown = $this->markdown_from_id(55);
+		// echo esc_html($markdown);
+
+		// Create JSON POST request
+		$response = wp_remote_post ('http://localhost:9999/', array(
+			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
+			'body'        => json_encode(['data' => $markdown]),
+			'method'      => 'POST',
+			'data_format' => 'body',
+		));
+		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			echo "Something went wrong: $error_message";
+		} else {
+			echo 'Response:<pre>';
+			print_r( $response['body'] );
+			echo '</pre>';
+		}
+	}
+
+	public function markdown_from_id($post_id) {
+		$post = get_post($post_id, OBJECT, 'display');
+		return $this->markdown_from_post($post);
+	}
+
+	/**
+	 * Create markdown from post data
+	 *
+	 * @param array $post_data 			The post data
+	 * @return string $markdown			The post markdown
+	 */
+	private function markdown_from_post($post) {
+		// Instantiate converter
+		$converter = new League\HTMLToMarkdown\HtmlConverter();
+
+		// Get post content
+		// echo $title = get_the_title($post);
+		// $author = get_the_author_meta('display_name', $post->post_author);
+		// $slug = $post->post_name;
+		// $published_gmt = $post->post_date_gmt;
+		// $modified_gmt = $post->post_modified_gmt;
+		// $today_gmt = gmdate('Y-m-d H:i:s');
+
+		$meta = array(
+			'title' => get_the_title($post),
+			'author' => get_the_author_meta('display_name', $post->post_author),
+			'slug' => $post->post_name,
+			'published_gmt' => $post->post_date_gmt,
+			'modified_gmt' => $post->post_modified_gmt,
+			'tx_date_gmt' => gmdate('Y-m-d H:i:s'),
+		);
+
+		$frontmatter = '<!--';
+		foreach ($meta as $key => $value) {
+			$frontmatter .= "\n$key: \"$value\"";
+		}
+		$frontmatter .= "\n-->\n\n";
+
+		$content = apply_filters('the_content', $post->post_content);
+		$markdown = $converter->convert($content);
+
+		return $frontmatter . $markdown;
+
+
+
+
+		// print_r($frontmatter);
+
+
+		// $published = $post->post_date;
+		// $modified = $post->post_modified;
+		// echo $post->post_date;
+		// echo $post->post_modified;
+		// echo $post->post_date_gmt;
+		// echo $post->post_modified_gmt;
+		// $today = current_datetime();
+		// echo $author;
+		// echo $title;
+		// echo $published;
+		// echo $modified;
+		// $content = $post->post_content;
+		// Strip WordPress comments
+		// $stripped_content = $this->remove_html_comments($content);
+		// Convert to markdown
+		// $markdown = $converter->convert($content);
+
+		// return $content;
+
+	}
+
+	/**
+	 * Retrieve JSON post data from WP rest API
+	 *
+	 * @param 	int 			$post_id 				The post id
+	 * @return 	string 		$post						The JSON post data
+	 */
+	private function get_post_json($post_id) {
+		$response = wp_remote_get(rest_url("wp/v2/posts/$post_id"));
+    $code = wp_remote_retrieve_response_code($response);
+
+    // Check if bad request
+    if ($code < 200 || $code >= 400) {
+      $body = wp_remote_retrieve_body($response);
+      $out = new WP_Error($code ,$body);
+    }
+    else {
+      $out = $response;
+    }
+
+		if (is_wp_error($out)) {
+      return false;
+    }
+
+		// Parse post data into associative array
+    // $post = json_decode($out['body'], true);
+    $post = $out['body'];
+
+    return $post;
+	}
+
+	private function remove_html_comments($content = '') {
+		return preg_replace('/<!--(.|\s)*?-->/', '', $content);
 	}
 }
