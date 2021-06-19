@@ -167,15 +167,45 @@ const AdminPanel = (props) => {
 	const classes = useStyles();
 
 	const handleUploadClick = () => {
-		console.log(selections)
-		console.log(ajaxurl)
+		// console.log(selections)
+		// console.log(ajaxurl)
 
+		// console.log(selections)
+		// Create post data object
+		let postData = {}
+		postData.posts = []
+		postData.prefix = "gendale.net"
+		postData.filetype = "text/markdown"
+		postData.encoding = "utf-8"
+
+		// Add post ids to post data
+		for (const [key, value] of Object.entries(selections)) {
+			if (value === true) {
+				postData.posts.push(key)
+			}
+		}
+
+		const postJSON = JSON.stringify(postData)
 		// Need FormData object to submit axios request
-		let formData = new FormData
-		formData.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
-		formData.append('action', 'wpbsv_send_transaction')
+		// let formData = new FormData
+		// formData.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
+		// formData.append('action', 'wpbsv_send_transaction')
+		// // formData.append('posts', selections)
+		// formData.append('posts', postJSON)
 
-		axios.post(ajaxurl, formData)
+		// axios.post(ajaxurl, formData)
+		// 	.then( res => {
+		// 		console.log(res)
+		// 	})
+		// 	.catch( err => {
+		// 		console.log(err)
+		// 	})
+
+		axios.post(
+			wpbsv_ajax_obj.urls.transaction, 
+			postData,
+			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
+		)
 			.then( res => {
 				console.log(res)
 			})
@@ -212,6 +242,8 @@ const AdminPanel = (props) => {
 			setExpanded(posts.map( post => post.id ))
 		}
 	}
+
+	console.log(wpbsv_ajax_obj.urls.transaction)
 
 	return (
 		<div>

@@ -62,8 +62,6 @@ class Wp_Upload_Bsv_Admin {
 	public function enqueue_styles() {
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-upload-bsv-admin.css', array(), $this->version, 'all' );
-		// wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
-		// wp_enqueue_style( 'wpbsv-admin-panel-svelte-css', 'http://localhost:5000/build/bundle.css', array(), $this->version, 'all' );
 	}
 
 	/**
@@ -72,10 +70,6 @@ class Wp_Upload_Bsv_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts($hook) {
-		// true if on admin tool panel
-		// $admin_page = ('tools_page_wpbsv_upload' === $hook);
-		// true if in development mode
-		$dev = (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1')));
 
 		// Only enqueue script on tools page
 		if ('tools_page_wpbsv_upload' !== $hook) {
@@ -83,57 +77,22 @@ class Wp_Upload_Bsv_Admin {
 		}
 
 		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-			// if ($admin_page) {
-				// wp_enqueue_script( 'wpbsv-admin-panel-svelte', 'http://localhost:5000/build/bundle.js', array(), $this->version, true );
 			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
-			// }
-			// wp_enqueue_script( 'wpbsv-auto-upload', 'http://localhost:8080/bundle.js', array(), $this->version, true );
 		}
 		// Production scripts
 		else {
-			// if ($admin_page) {
 			wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
-			// }
-			// wp_enqueue_script( 'wpbsv-auto-upload', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
 		}
 		wp_localize_script(
       'wpbsv-admin-panel-react',
       'wpbsv_ajax_obj', 
       array(
-        'nonce' => wp_create_nonce('wpbsv_transaction_nonce')
+        'nonce' => wp_create_nonce('wp_rest'),
+				'urls' => array(
+					'transaction' => rest_url('wpbsv-upload-bsv/v1/transaction'),
+				),
       )
     );
-		// enqueue on post update
-		// echo "here";
-		// global $post;
-		// if ('post.php' == $hook && 'post' == $post->post_type && isset($_GET['message'])) {
-		// 	echo "hi";
-		// 	$message_id = absint($_GET['message']);
-			// wp_register_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
-			// wp_enqueue_script( 'wpbsv-invisible-moneybutton', plugin_dir_url( __FILE__ ) . 'js/wpbsv-invisible-moneybutton.js', array( 'jquery' ), $this->version, false);
-		// 	$data = array( 'Message' => $message_id);
-		// 	wp_localize_script( 'wpbsv-invisible-moneybutton', 'wpbsvPost', $data);
-			
-		// }
-
-		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/wpbsv-auto-upload/build/bundle.js', array(), $this->version, true );
-		// Enqueue script only for this page
-		// if ('tools_page_wpbsv_upload' !== $hook) {
-		// 	return;
-		// }
-
-		// $js_to_load = '';
-		// if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-			// DEV React dynamic loading
-			// $js_to_load = 'http://localhost:8080/bundle.js';
-			// wp_enqueue_script( 'react-app-js', 'http://localhost:8080/bundle.js', array(), $this->version, true );
-		// }
-		// else {
-		// 	// Use production build
-		// 	$js_to_load = plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js';
-		// }
-		// wp_enqueue_script( 'wpbsv-admin-panel-react', $js_to_load, array(), $this->version, true );
-		// wp_enqueue_script( 'admin-panel-react', plugin_dir_url( __FILE__ ) . 'admin-panel-react/build/bundle.js', array(), $this->version, true );
 	}
 
 	/**
@@ -170,15 +129,12 @@ class Wp_Upload_Bsv_Admin {
 			<div id="wpbsv-auto-upload"></div>
 		<?php
 		}
-	
-	// public function se_inspect_scripts() {
-	// 	global $wp_scripts;
-	// 	echo "<h2>Enqueued JS Scripts</h2><ul>";
-	// 	foreach( $wp_scripts->queue as $handle ) :
-	// 		echo "<li>" . $handle . "</li>";
-	// 	endforeach;
-	// 	echo "</ul>";
-	// }
+
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 */
 	public function onPublishPost() {
 		echo 'post published';
 	}
@@ -186,19 +142,20 @@ class Wp_Upload_Bsv_Admin {
 	public function uploadPosts($postIds = []) {
 		return true;
 	}
-	/**
-   * Handle send button click from tools page
-   *
-   * @return      json       The current date and time if update successful, error if not.
-   */
-  public function send_transaction_handler() {
-		echo "hereeeeeeeeeeeeeeeeeeeeeeeeeee";
-    check_ajax_referer('wpbsv_transaction_nonce');
-    $success = $this->uploadPosts();
-    if ($success) {
-      wp_send_json( esc_html(current_time('Y-m-d @ g:i:s a')));
-    }
-    wp_send_json_error( 'Error sending transaction(s)', '500' );
 
-  }
+	public function bsv_api_proxy($request) {
+		return $request->get_params();
+	}
+
+	// Register the transaction endpoint
+	public function register_bsv_api() {
+
+		register_rest_route('wpbsv-upload-bsv/v1', '/transaction', array(
+			'methods' => WP_REST_Server::CREATABLE,
+			'callback' => array($this, 'bsv_api_proxy'),
+			'permission_callback' => function() {
+				return current_user_can( 'publish_posts' );
+			}
+		));
+	}
 }
