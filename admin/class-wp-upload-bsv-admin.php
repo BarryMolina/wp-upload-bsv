@@ -139,23 +139,52 @@ class Wp_Upload_Bsv_Admin {
 		echo 'post published';
 	}
 
-	public function uploadPosts($postIds = []) {
+	public function sendTransaction($content, $prefix='', $file_type='', $encoding='') {
+		
+
+		
 		return true;
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @param array $request 
+	 * @return bool 
+	 */
 	public function bsv_api_proxy($request) {
-		return $request->get_params();
+		$postData = $request->get_json_params();
+		foreach ($postData['posts'] as $post) {
+			print_r(get_post($post, ARRAY_A));
+		}
+		// return $this->sendTransaction()
+		return true;
 	}
 
-	// Register the transaction endpoint
+	// 
+	/**
+	 * Register the transaction endpoint
+	 *
+	 * @return void
+	 */
 	public function register_bsv_api() {
-
 		register_rest_route('wpbsv-upload-bsv/v1', '/transaction', array(
+			// POST request
 			'methods' => WP_REST_Server::CREATABLE,
 			'callback' => array($this, 'bsv_api_proxy'),
-			'permission_callback' => function() {
-				return current_user_can( 'publish_posts' );
-			}
+			// Validation callback
+			'args' => array(
+				'posts' => array(
+					'validate_callback' => function($posts) {
+						return !empty($posts);
+					}
+				),
+			),
+			// Authorization
+			// 'permission_callback' => function() {
+			// 	return current_user_can( 'publish_posts' );
+			// }
+			'permission_callback' => '__return_true'
 		));
 	}
 }

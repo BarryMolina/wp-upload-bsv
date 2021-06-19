@@ -185,22 +185,7 @@ const AdminPanel = (props) => {
 			}
 		}
 
-		const postJSON = JSON.stringify(postData)
-		// Need FormData object to submit axios request
-		// let formData = new FormData
-		// formData.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
-		// formData.append('action', 'wpbsv_send_transaction')
-		// // formData.append('posts', selections)
-		// formData.append('posts', postJSON)
-
-		// axios.post(ajaxurl, formData)
-		// 	.then( res => {
-		// 		console.log(res)
-		// 	})
-		// 	.catch( err => {
-		// 		console.log(err)
-		// 	})
-
+		console.log(JSON.stringify(postData))
 		axios.post(
 			wpbsv_ajax_obj.urls.transaction, 
 			postData,
