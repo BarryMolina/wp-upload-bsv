@@ -22,8 +22,9 @@ import withSelections from 'react-item-select'
 import Link from '@material-ui/core/Link';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-
 import { forEach } from 'lodash';
+
+import TxOptions from './TxOptions';
 
 const wpURL = 'http://localhost:8888/wordpress/wp-json'
 const useStyles = makeStyles({
@@ -41,6 +42,37 @@ const useStyles = makeStyles({
       borderTop: 'unset',
     },
   },
+	inputContainer: {
+		padding: '1rem 0',
+		display: 'flex',
+		alignItems: 'center',
+		'& label': {
+			fontSize: '1rem',
+		},
+		'& > :not(:first-child)': {
+			marginLeft: '.4rem',
+		},
+		'& input[type="text"]': {
+			width: "250px",
+		}
+	}
+	// textField: {
+		// '& label': {
+		// 	top: '-3px'
+		// },
+		// '& label:focus': {
+		// 	top: 0
+		// }
+    // '& > *': {
+		// 	backgroundColor: '#ffff'
+		// '& input': {
+		// 	border: 'none',
+		// 	minHeight: '0px',
+		// },
+		// '& input:focus': {
+		// 	boxShadow: 'none'
+		// }
+	// }
 });
 
 const Row = ( props ) => {
@@ -132,53 +164,57 @@ const AdminPanel = (props) => {
 
 	const [posts, setPosts] = useState([])
 	const [expanded, setExpanded] = useState([])
+	const [prefixSelectValue, setPrefixSelect] = useState('')
+	const [prefixTextValue, setPrefixText] = useState('')
 
-	// useEffect(() => {
-	// 	axios.get(wpURL + '/wp/v2/posts')
-	// 		.then((res) => {
-	// 			// console.log(res)
-	// 			setPosts(res.data)
-	// 		})
-	// 		.catch((err) => {
-	// 			console.log(err)
-	// 		})
-	// }, [])
+	useEffect(() => {
+		axios.get(wpURL + '/wp/v2/posts')
+			.then((res) => {
+				// console.log(res)
+				setPosts(res.data)
+			})
+			.catch((err) => {
+				console.log(err)
+			})
+	}, [])
 
 	const classes = useStyles();
 
-	// const handleUploadClick = () => {
-	// 	// console.log(selections)
-	// 	// console.log(ajaxurl)
+	const handleUploadClick = () => {
+		// console.log(selections)
+		// console.log(ajaxurl)
 
-	// 	// console.log(selections)
-	// 	// Create post data object
-	// 	let postData = {
-	// 		postIds: [],
-	// 		prefix: "gendale.net",
-	// 		filetype: "text/markdown",
-	// 		encoding: "utf-8"
-	// 	}
+		// console.log(selections)
+		// Create post data object
+		let postData = {
+			postIds: [],
+			prefix: "gendale.net",
+			filetype: "text/markdown",
+			encoding: "utf-8"
+		}
 
-	// 	// Add post ids to post data
-	// 	for (const [key, value] of Object.entries(selections)) {
-	// 		if (value === true) {
-	// 			postData.postIds.push(key)
-	// 		}
-	// 	}
+		// Add post ids to post data
+		for (const [key, value] of Object.entries(selections)) {
+			if (value === true) {
+				postData.postIds.push(key)
+			}
+		}
 
-	// 	console.log(JSON.stringify(postData))
-	// 	axios.post(
-	// 		wpbsv_ajax_obj.urls.transaction, 
-	// 		postData,
-	// 		{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
-	// 	)
-	// 		.then( res => {
-	// 			console.log(res)
-	// 		})
-	// 		.catch( err => {
-	// 			console.log(err)
-	// 		})
-	// }
+		console.log(JSON.stringify(postData))
+		axios.post(
+			wpbsv_ajax_obj.urls.transaction, 
+			postData,
+			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
+		)
+			.then( res => {
+				console.log(res)
+			})
+			.catch( err => {
+				console.log(err)
+			})
+	}
+
+	// Row expand handlers
 	const handleClick = (row) => {
 		handleSelect(row)
 	}
@@ -209,16 +245,9 @@ const AdminPanel = (props) => {
 		}
 	}
 
-	const top100Films = [
-		{ title: 'The Shawshank Redemption', year: 1994 },
-		{ title: 'The Godfather', year: 1972 },
-		{ title: 'The Godfather: Part II', year: 1974 },
-		{ title: 'The Dark Knight', year: 2008 },
-		{ title: '12 Angry Men', year: 1957 },
-		{ title: "Schindler's List", year: 1993 },
-		{ title: 'Pulp Fiction', year: 1994 },
-	]
 
+	// console.log(prefixSelectValue)
+	// console.log(prefixTextValue)
 	return (
 		<div>
 			<TableContainer component={Paper}>
@@ -260,17 +289,32 @@ const AdminPanel = (props) => {
 					</TableBody>
 				</Table>
 			</TableContainer>
-			{/* <div style={{ width: 300 }}>
-				<Autocomplete
+			<TxOptions
+				prefixTextValue={prefixTextValue}
+				prefixSelectValue={prefixSelectValue}
+				setPrefixSelect={setPrefixSelect}
+				setPrefixText={setPrefixText}
+			/>
+			{/* <div className={classes.inputContainer}> */}
+				{/* <Autocomplete
+					className={classes.textField}
 					id="free-solo-demo"
 					freeSolo
 					// options={top100Films.map((option) => option.title)}
 					options={['B://', 'gendale.net', 'C://']}
 					renderInput={(params) => (
-						<TextField {...params} label="freeSolo" margin="normal" variant="outlined" />
+						<TextField className={classes.textField} {...params} label="freeSolo" margin="normal" variant="outlined" />
 					)}
-				/>
-			</div> */}
+				/> */}
+				{/* <TextField className={classes.textField} margin="normal" id="outlined-basic" label="Outlined" variant="filled" />
+				<TextField className={classes.textField}  label="freeSolo" margin="normal" variant="outlined" /> */}
+				{/* <label for="prefix" id="prefix-label">Prefix:</label>
+				<select name="protocol" id="protocol">
+					<option value="Custom">Custom</option>
+					<option value="B">B://</option>
+				</select>
+				<input name="prefix" id="prefix" type="text"/> */}
+			{/* </div> */}
 			{/* <Autocomplete
       id="combo-box-demo"
       options={top100Films}
@@ -278,11 +322,11 @@ const AdminPanel = (props) => {
       style={{ width: 300 }}
       renderInput={(params) => <TextField {...params} label="Combo box" variant="outlined" minHeight="0" />}
     /> */}
-		<input type="text" name="example" list="exampleList" style={{ padding: ".3rem" }}/>
+		{/* <input type="text" name="example" list="exampleList" style={{ padding: ".3rem" }}/>
 		<datalist id="exampleList">
 			<option value="A"/>  
 			<option value="B"/>
-		</datalist>
+		</datalist> */}
 			<Button 
 				variant="contained" 
 				color="primary" 
