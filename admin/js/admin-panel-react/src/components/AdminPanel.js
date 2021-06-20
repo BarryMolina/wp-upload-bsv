@@ -20,6 +20,9 @@ import Collapse from '@material-ui/core/Collapse';
 import Box from '@material-ui/core/Box';
 import withSelections from 'react-item-select'
 import Link from '@material-ui/core/Link';
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 import { forEach } from 'lodash';
 
 const wpURL = 'http://localhost:8888/wordpress/wp-json'
@@ -39,29 +42,6 @@ const useStyles = makeStyles({
     },
   },
 });
-
-function createData(id, name, calories, fat, carbs, protein) {
-  return { 
-		id, 
-		name, 
-		calories, 
-		fat, 
-		carbs, 
-		protein,
-		history: [
-      { date: '2020-01-05', customerId: '11091700', amount: 3 },
-      { date: '2020-01-02', customerId: 'Anonymous', amount: 1 },
-    ],
-	};
-}
-
-const rows = [
-  createData(1, 'Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData(2,'Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData(3,'Eclair', 262, 16.0, 24, 6.0),
-  createData(4,'Cupcake', 305, 3.7, 67, 4.3),
-  createData(5,'Gingerbread', 356, 16.0, 49, 3.9),
-];
 
 const Row = ( props ) => {
 	const { 
@@ -153,51 +133,52 @@ const AdminPanel = (props) => {
 	const [posts, setPosts] = useState([])
 	const [expanded, setExpanded] = useState([])
 
-	useEffect(() => {
-		axios.get(wpURL + '/wp/v2/posts')
-			.then((res) => {
-				// console.log(res)
-				setPosts(res.data)
-			})
-			.catch((err) => {
-				console.log(err)
-			})
-	}, [])
+	// useEffect(() => {
+	// 	axios.get(wpURL + '/wp/v2/posts')
+	// 		.then((res) => {
+	// 			// console.log(res)
+	// 			setPosts(res.data)
+	// 		})
+	// 		.catch((err) => {
+	// 			console.log(err)
+	// 		})
+	// }, [])
 
 	const classes = useStyles();
 
-	const handleUploadClick = () => {
-		// console.log(selections)
-		// console.log(ajaxurl)
+	// const handleUploadClick = () => {
+	// 	// console.log(selections)
+	// 	// console.log(ajaxurl)
 
-		// console.log(selections)
-		// Create post data object
-		let postData = {}
-		postData.posts = []
-		postData.prefix = "gendale.net"
-		postData.filetype = "text/markdown"
-		postData.encoding = "utf-8"
+	// 	// console.log(selections)
+	// 	// Create post data object
+	// 	let postData = {
+	// 		postIds: [],
+	// 		prefix: "gendale.net",
+	// 		filetype: "text/markdown",
+	// 		encoding: "utf-8"
+	// 	}
 
-		// Add post ids to post data
-		for (const [key, value] of Object.entries(selections)) {
-			if (value === true) {
-				postData.posts.push(key)
-			}
-		}
+	// 	// Add post ids to post data
+	// 	for (const [key, value] of Object.entries(selections)) {
+	// 		if (value === true) {
+	// 			postData.postIds.push(key)
+	// 		}
+	// 	}
 
-		console.log(JSON.stringify(postData))
-		axios.post(
-			wpbsv_ajax_obj.urls.transaction, 
-			postData,
-			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
-		)
-			.then( res => {
-				console.log(res)
-			})
-			.catch( err => {
-				console.log(err)
-			})
-	}
+	// 	console.log(JSON.stringify(postData))
+	// 	axios.post(
+	// 		wpbsv_ajax_obj.urls.transaction, 
+	// 		postData,
+	// 		{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
+	// 	)
+	// 		.then( res => {
+	// 			console.log(res)
+	// 		})
+	// 		.catch( err => {
+	// 			console.log(err)
+	// 		})
+	// }
 	const handleClick = (row) => {
 		handleSelect(row)
 	}
@@ -228,7 +209,15 @@ const AdminPanel = (props) => {
 		}
 	}
 
-	console.log(wpbsv_ajax_obj.urls.transaction)
+	const top100Films = [
+		{ title: 'The Shawshank Redemption', year: 1994 },
+		{ title: 'The Godfather', year: 1972 },
+		{ title: 'The Godfather: Part II', year: 1974 },
+		{ title: 'The Dark Knight', year: 2008 },
+		{ title: '12 Angry Men', year: 1957 },
+		{ title: "Schindler's List", year: 1993 },
+		{ title: 'Pulp Fiction', year: 1994 },
+	]
 
 	return (
 		<div>
@@ -253,7 +242,6 @@ const AdminPanel = (props) => {
 							<TableCell align="right">Author</TableCell>
 							<TableCell align="right">Date</TableCell>
 							<TableCell align="right">Type</TableCell>
-							<TableCell align="right">Protein&nbsp;(g)</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -272,6 +260,29 @@ const AdminPanel = (props) => {
 					</TableBody>
 				</Table>
 			</TableContainer>
+			{/* <div style={{ width: 300 }}>
+				<Autocomplete
+					id="free-solo-demo"
+					freeSolo
+					// options={top100Films.map((option) => option.title)}
+					options={['B://', 'gendale.net', 'C://']}
+					renderInput={(params) => (
+						<TextField {...params} label="freeSolo" margin="normal" variant="outlined" />
+					)}
+				/>
+			</div> */}
+			{/* <Autocomplete
+      id="combo-box-demo"
+      options={top100Films}
+      getOptionLabel={(option) => option.title}
+      style={{ width: 300 }}
+      renderInput={(params) => <TextField {...params} label="Combo box" variant="outlined" minHeight="0" />}
+    /> */}
+		<input type="text" name="example" list="exampleList" style={{ padding: ".3rem" }}/>
+		<datalist id="exampleList">
+			<option value="A"/>  
+			<option value="B"/>
+		</datalist>
 			<Button 
 				variant="contained" 
 				color="primary" 

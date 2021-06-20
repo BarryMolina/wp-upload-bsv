@@ -154,15 +154,19 @@ class Wp_Upload_Bsv_Admin {
 	}
 
 	/**
-	 * Undocumented function
+	 * Endpoint to receive post ids from admin panel
 	 *
 	 * @param array $request 
 	 * @return bool 
 	 */
 	public function bsv_api_proxy($request) {
+		// The JSON object sent from admin panel
 		$postData = $request->get_json_params();
-		foreach ($postData['posts'] as $post) {
-			print_r(get_post($post, ARRAY_A));
+
+		foreach ($postData['posts'] as $post_id) {
+
+
+			// print_r(get_post($post, ARRAY_A));
 		}
 		// return $this->sendTransaction()
 		return true;
@@ -196,11 +200,9 @@ class Wp_Upload_Bsv_Admin {
 	}
 	public function markdown_test() {
 
-		// $markdown = $this->create_post_markdown(55);
 		$markdown = $this->markdown_from_id(55);
-		// echo esc_html($markdown);
 
-		// Create JSON POST request
+		// POST markdown to api
 		$response = wp_remote_post ('http://localhost:9999/', array(
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
 			'body'        => json_encode(['data' => $markdown]),
@@ -217,74 +219,58 @@ class Wp_Upload_Bsv_Admin {
 		}
 	}
 
+	/**
+	 * Retrieve post by id and convert to markdown
+	 *
+	 * @param 		int 		$post_id			The id of the post
+	 * @return 		string								The post markdown
+	 */
 	public function markdown_from_id($post_id) {
 		$post = get_post($post_id, OBJECT, 'display');
 		return $this->markdown_from_post($post);
 	}
 
 	/**
-	 * Create markdown from post data
+	 * Create markdown from post object
 	 *
-	 * @param array $post_data 			The post data
-	 * @return string $markdown			The post markdown
+	 * @param 		WP_Post 		$post					The post to convert
+	 * @return 		string 			$markdown			The post markdown
 	 */
 	private function markdown_from_post($post) {
-		// Instantiate converter
-		$converter = new League\HTMLToMarkdown\HtmlConverter();
 
-		// Get post content
-		// echo $title = get_the_title($post);
-		// $author = get_the_author_meta('display_name', $post->post_author);
-		// $slug = $post->post_name;
-		// $published_gmt = $post->post_date_gmt;
-		// $modified_gmt = $post->post_modified_gmt;
-		// $today_gmt = gmdate('Y-m-d H:i:s');
+		$title = get_the_title($post);
 
 		$meta = array(
-			'title' => get_the_title($post),
-			'author' => get_the_author_meta('display_name', $post->post_author),
-			'slug' => $post->post_name,
+			'title' 				=> $title,
+			'author' 				=> get_the_author_meta('display_name', $post->post_author),
+			'slug' 					=> $post->post_name,
 			'published_gmt' => $post->post_date_gmt,
-			'modified_gmt' => $post->post_modified_gmt,
-			'tx_date_gmt' => gmdate('Y-m-d H:i:s'),
+			'modified_gmt' 	=> $post->post_modified_gmt,
+			'tx_date_gmt' 	=> gmdate('Y-m-d H:i:s'),
 		);
 
+		// Build frontmatter
 		$frontmatter = '<!--';
 		foreach ($meta as $key => $value) {
 			$frontmatter .= "\n$key: \"$value\"";
 		}
 		$frontmatter .= "\n-->\n\n";
 
+		// Set converter options
+		$converter_options = array(
+			'strip_tags' => true,
+		);
+		// Instantiate converter
+		$converter = new League\HTMLToMarkdown\HtmlConverter($converter_options);
+
+		// Title markdown
+		$title_md = "# $title\n\n";
+
+		// Content to markdown
 		$content = apply_filters('the_content', $post->post_content);
 		$markdown = $converter->convert($content);
 
-		return $frontmatter . $markdown;
-
-
-
-
-		// print_r($frontmatter);
-
-
-		// $published = $post->post_date;
-		// $modified = $post->post_modified;
-		// echo $post->post_date;
-		// echo $post->post_modified;
-		// echo $post->post_date_gmt;
-		// echo $post->post_modified_gmt;
-		// $today = current_datetime();
-		// echo $author;
-		// echo $title;
-		// echo $published;
-		// echo $modified;
-		// $content = $post->post_content;
-		// Strip WordPress comments
-		// $stripped_content = $this->remove_html_comments($content);
-		// Convert to markdown
-		// $markdown = $converter->convert($content);
-
-		// return $content;
-
+		return $frontmatter . $title_md . $markdown;
 	}
 
 	/**
@@ -312,12 +298,10 @@ class Wp_Upload_Bsv_Admin {
 
 		// Parse post data into associative array
     // $post = json_decode($out['body'], true);
+
+		// Get body
     $post = $out['body'];
 
     return $post;
-	}
-
-	private function remove_html_comments($content = '') {
-		return preg_replace('/<!--(.|\s)*?-->/', '', $content);
 	}
 }
