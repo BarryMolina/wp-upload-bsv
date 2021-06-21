@@ -181,24 +181,29 @@ const AdminPanel = (props) => {
 	const classes = useStyles();
 
 	const handleUploadClick = () => {
-		// console.log(selections)
+		console.log(selections)
 		// console.log(ajaxurl)
-
 		// console.log(selections)
+
 		// Create post data object
 		let postData = {
-			postIds: [],
-			prefix: "gendale.net",
+			postIds: Array.from(Object.entries(selections), ([key, value]) => {
+				if (value === true) {
+					return key
+				}
+			}),
+			// postIds: Object.keys(selections),
+			prefix: prefixTextValue,
 			filetype: "text/markdown",
 			encoding: "utf-8"
 		}
 
 		// Add post ids to post data
-		for (const [key, value] of Object.entries(selections)) {
-			if (value === true) {
-				postData.postIds.push(key)
-			}
-		}
+		// for (const [key, value] of Object.entries(selections)) {
+		// 	if (value === true) {
+		// 		postData.postIds.push(key)
+		// 	}
+		// }
 
 		console.log(JSON.stringify(postData))
 		axios.post(

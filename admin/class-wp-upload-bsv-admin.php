@@ -163,10 +163,10 @@ class Wp_Upload_Bsv_Admin {
 		// The JSON object sent from admin panel
 		$postData = $request->get_json_params();
 
-		foreach ($postData['posts'] as $post_id) {
-
-
-			// print_r(get_post($post, ARRAY_A));
+		// echo $postData['filetype'];
+		foreach ($postData['postIds'] as $post_id) {
+			echo get_the_title(get_post($post_id));
+			// print_r(get_post($post_id, ARRAY_A));
 		}
 		// return $this->sendTransaction()
 		return true;
