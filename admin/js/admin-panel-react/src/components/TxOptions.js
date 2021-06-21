@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 
 const useStyles = makeStyles({
 	inputContainer: {
@@ -72,22 +73,19 @@ const TxOptions = props => {
 	}
 
 	return (
+		<>
 		<div className={classes.inputContainer}>
 			<label htmlFor="prefix" id="prefix-label">Prefix:</label>
 			<select name="protocol" id="protocol" value={prefixSelectValue} onChange={handleSelectChange}>
 				<option value="Custom">Custom</option>
-				{
-					// protocols.map(protocol => (
-					// 	<option value={protocol.name} key={protocol.name}>{protocol.name}</option>
-					// ))
-					Array.from(protocols.keys(), protocol => (
+				{ Array.from(protocols.keys(), protocol => (
 						<option value={protocol} key={protocol}>{protocol}</option>
-					))
-				}
-				{/* <option value="B">B://</option> */}
+					)) }
 			</select>
 			<input name="prefix" id="prefix" type="text" value={prefixTextValue} onChange={handleTextChange}/>
 		</div>
+		{/* <Button variant="contained" color="secondary">Add Prefix</Button> */}
+		</>
 	)
 }
 

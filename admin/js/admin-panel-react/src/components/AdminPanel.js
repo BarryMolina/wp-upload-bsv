@@ -300,39 +300,9 @@ const AdminPanel = (props) => {
 				setPrefixSelect={setPrefixSelect}
 				setPrefixText={setPrefixText}
 			/>
-			{/* <div className={classes.inputContainer}> */}
-				{/* <Autocomplete
-					className={classes.textField}
-					id="free-solo-demo"
-					freeSolo
-					// options={top100Films.map((option) => option.title)}
-					options={['B://', 'gendale.net', 'C://']}
-					renderInput={(params) => (
-						<TextField className={classes.textField} {...params} label="freeSolo" margin="normal" variant="outlined" />
-					)}
-				/> */}
-				{/* <TextField className={classes.textField} margin="normal" id="outlined-basic" label="Outlined" variant="filled" />
-				<TextField className={classes.textField}  label="freeSolo" margin="normal" variant="outlined" /> */}
-				{/* <label for="prefix" id="prefix-label">Prefix:</label>
-				<select name="protocol" id="protocol">
-					<option value="Custom">Custom</option>
-					<option value="B">B://</option>
-				</select>
-				<input name="prefix" id="prefix" type="text"/> */}
-			{/* </div> */}
-			{/* <Autocomplete
-      id="combo-box-demo"
-      options={top100Films}
-      getOptionLabel={(option) => option.title}
-      style={{ width: 300 }}
-      renderInput={(params) => <TextField {...params} label="Combo box" variant="outlined" minHeight="0" />}
-    /> */}
-		{/* <input type="text" name="example" list="exampleList" style={{ padding: ".3rem" }}/>
-		<datalist id="exampleList">
-			<option value="A"/>  
-			<option value="B"/>
-		</datalist> */}
+		<Button variant="contained" color="secondary">Add Prefix</Button>
 			<Button 
+				style={{ marginLeft: ".5rem"}} 
 				variant="contained" 
 				color="primary" 
 				onClick={() => handleUploadClick()}
