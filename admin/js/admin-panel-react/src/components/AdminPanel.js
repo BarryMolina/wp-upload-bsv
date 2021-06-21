@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import styled from 'styled-components'
 import MoneyButton from '@moneybutton/react-money-button'
-import { makeStyles } from '@material-ui/core/styles';
+import {  makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -74,6 +74,10 @@ const useStyles = makeStyles({
 		// }
 	// }
 });
+
+const PrefixContainer = styled.div`
+	padding: 1rem 0;
+`
 
 const Row = ( props ) => {
 	const { 
@@ -164,8 +168,8 @@ const AdminPanel = (props) => {
 
 	const [posts, setPosts] = useState([])
 	const [expanded, setExpanded] = useState([])
-	const [prefixSelectValue, setPrefixSelect] = useState('')
-	const [prefixTextValue, setPrefixText] = useState('')
+	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
+	const [prefixTextValues, setPrefixTextValues] = useState([''])
 
 	useEffect(() => {
 		axios.get(wpURL + '/wp/v2/posts')
@@ -180,11 +184,8 @@ const AdminPanel = (props) => {
 
 	const classes = useStyles();
 
-	const handleUploadClick = () => {
+	const handleSendClick = () => {
 		console.log(selections)
-		// console.log(ajaxurl)
-		// console.log(selections)
-
 		// Create post data object
 		let postData = {
 			postIds: Array.from(Object.entries(selections), ([key, value]) => {
@@ -193,18 +194,12 @@ const AdminPanel = (props) => {
 				}
 			}),
 			// postIds: Object.keys(selections),
-			prefix: prefixTextValue,
+			prefixes: prefixTextValues,
 			filetype: "text/markdown",
 			encoding: "utf-8"
 		}
 
-		// Add post ids to post data
-		// for (const [key, value] of Object.entries(selections)) {
-		// 	if (value === true) {
-		// 		postData.postIds.push(key)
-		// 	}
-		// }
-
+		console.log(postData)
 		console.log(JSON.stringify(postData))
 		axios.post(
 			wpbsv_ajax_obj.urls.transaction, 
@@ -248,6 +243,40 @@ const AdminPanel = (props) => {
 		else {
 			setExpanded(posts.map( post => post.id ))
 		}
+	}
+
+	const prefixSelectHandler = (newValue, i) => {
+		let values = prefixSelectValues.slice()
+		values[i] = newValue
+		setPrefixSelectValues(values)
+	}
+
+	const prefixTextHandler = (newValue, i) => {
+		let values = prefixTextValues.slice()
+		values[i] = newValue
+		setPrefixTextValues(values)
+	}
+
+	const addPrefixHandler = () => {
+		let selectValues = prefixSelectValues.slice()
+		let textValues = prefixTextValues.slice()
+		selectValues.push('Custom')
+		textValues.push('')
+
+		setPrefixSelectValues(selectValues)
+		setPrefixTextValues(textValues)
+	}
+
+	// Remove prefix
+	const deletePrefixHandler = prefixIdx => {
+		let selectValues = prefixSelectValues.slice()
+		let textValues = prefixTextValues.slice()
+		selectValues.splice(prefixIdx, 1)
+		textValues.splice(prefixIdx, 1)
+
+		setPrefixSelectValues(selectValues)
+		setPrefixTextValues(textValues)
+
 	}
 
 
@@ -294,18 +323,27 @@ const AdminPanel = (props) => {
 					</TableBody>
 				</Table>
 			</TableContainer>
-			<TxOptions
-				prefixTextValue={prefixTextValue}
-				prefixSelectValue={prefixSelectValue}
-				setPrefixSelect={setPrefixSelect}
-				setPrefixText={setPrefixText}
-			/>
-		<Button variant="contained" color="secondary">Add Prefix</Button>
+			<PrefixContainer>
+			{
+				prefixSelectValues.map((value, i) => (
+					<TxOptions
+						key={i}
+						optionsIndex={i}
+						prefixTextValue={prefixTextValues[i]}
+						prefixSelectValue={prefixSelectValues[i]}
+						setPrefixSelect={prefixSelectHandler}
+						setPrefixText={prefixTextHandler}
+						deleteHandler={deletePrefixHandler}
+					/>
+				))
+			}
+			</PrefixContainer> 
+			<Button variant="contained" color="secondary" onClick={addPrefixHandler}>Add Prefix</Button>
 			<Button 
 				style={{ marginLeft: ".5rem"}} 
 				variant="contained" 
 				color="primary" 
-				onClick={() => handleUploadClick()}
+				onClick={() => handleSendClick()}
 			>Send</Button>
 		</div>
 	)

@@ -146,29 +146,73 @@ class Wp_Upload_Bsv_Admin {
 		echo 'post published';
 	}
 
+	/**
+	 * Send POST request to api to create BSV transaction
+	 * Called from admin panel and when post is published
+	 *
+	 * @param 	string 							$content			The data to send
+	 * @param 	string 							$prefix				Optional prefix
+	 * @param 	string 							$file_type		Optional file type
+	 * @param 	string 							$encoding			Optional encoding
+	 * @return 	array|WP_Error 			$out 					The response or WP_Error on failure
+	 */
 	public function sendTransaction($content, $prefix='', $file_type='', $encoding='') {
-		
+		$data = array($prefix, $content, $file_type, $encoding);
+		// Remove falsy elements
+		array_filter($data);
 
-		
-		return true;
+		// POST markdown to api
+		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
+			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
+			'body'        => json_encode(['data' => $data]),
+			'method'      => 'POST',
+			'data_format' => 'body',
+		));
+
+    $code = wp_remote_retrieve_response_code($response);
+
+    // Check if bad request
+    if ($code < 200 || $code >= 400) {
+      $body = wp_remote_retrieve_body($response);
+      $out = new WP_Error($code ,$body);
+    }
+    else {
+      $out = $response;
+    }
+		return $out;
 	}
 
 	/**
-	 * Endpoint to receive post ids from admin panel
+	 * Endpoint to receive post data from admin panel
+	 * Parse JSON params and send transactions
 	 *
-	 * @param array $request 
-	 * @return bool 
+	 * @param 		array 			$request  		POST request containing post data
+	 * @return 		bool											true if successful, else false 			
 	 */
 	public function bsv_api_proxy($request) {
 		// The JSON object sent from admin panel
+		// Get the parsed JSON request body as array
 		$postData = $request->get_json_params();
 
-		// echo $postData['filetype'];
 		foreach ($postData['postIds'] as $post_id) {
-			echo get_the_title(get_post($post_id));
-			// print_r(get_post($post_id, ARRAY_A));
+			$markdown = $this->markdown_from_id($post_id);
+			
+			foreach ($postData['prefixes'] as $prefix) {
+				$response = $this->sendTransaction($markdown, $prefix, 'text/markdown', 'utf-8');
+
+				// Check for error
+				if ( is_wp_error( $response ) ) {
+					// $error_message = $response->get_error_message();
+					// echo "Something went wrong: $error_message";
+					return false;
+				} 
+				else {
+					// echo 'Response:<pre>';
+					print_r( $response['body'] );
+					// echo '</pre>';
+				}
+			}
 		}
-		// return $this->sendTransaction()
 		return true;
 	}
 
