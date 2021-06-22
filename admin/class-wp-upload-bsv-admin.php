@@ -161,8 +161,13 @@ class Wp_Upload_Bsv_Admin {
 		// Remove falsy elements
 		array_filter($data);
 
+		// Check that data exists
+		if (empty(data)) {
+			return new WP_Error('empty', 'Transaction contains no data');
+		}
+
 		// POST markdown to api
-		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
+		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
 			'body'        => json_encode(['data' => $data]),
 			'method'      => 'POST',
@@ -194,26 +199,35 @@ class Wp_Upload_Bsv_Admin {
 		// Get the parsed JSON request body as array
 		$postData = $request->get_json_params();
 
+		if (empty($postData['postIds'])) {
+			return false;
+		}
+
+		$tx_ids = array();
+
 		foreach ($postData['postIds'] as $post_id) {
 			$markdown = $this->markdown_from_id($post_id);
 			
 			foreach ($postData['prefixes'] as $prefix) {
 				$response = $this->sendTransaction($markdown, $prefix, 'text/markdown', 'utf-8');
 
-				// Check for error
-				if ( is_wp_error( $response ) ) {
-					// $error_message = $response->get_error_message();
-					// echo "Something went wrong: $error_message";
-					return false;
-				} 
-				else {
-					// echo 'Response:<pre>';
+				if (!is_wp_error($response)) {
 					print_r( $response['body'] );
-					// echo '</pre>';
 				}
+				// Check for error
+				// if ( is_wp_error( $response ) ) {
+				// 	// $error_message = $response->get_error_message();
+				// 	// echo "Something went wrong: $error_message";
+				// 	return false;
+				// } 
+				// else {
+				// 	// echo 'Response:<pre>';
+				// 	// print_r( $response['body'] );
+				// 	// echo '</pre>';
+				// }
 			}
 		}
-		return true;
+		return json_encode($tx_ids);
 	}
 
 	// 
@@ -228,13 +242,13 @@ class Wp_Upload_Bsv_Admin {
 			'methods' => WP_REST_Server::CREATABLE,
 			'callback' => array($this, 'bsv_api_proxy'),
 			// Validation callback
-			'args' => array(
-				'posts' => array(
-					'validate_callback' => function($posts) {
-						return !empty($posts);
-					}
-				),
-			),
+			// 'args' => array(
+			// 	'posts' => array(
+			// 		'validate_callback' => function($posts) {
+			// 			return !empty($posts);
+			// 		}
+			// 	),
+			// ),
 			// Authorization
 			// 'permission_callback' => function() {
 			// 	return current_user_can( 'publish_posts' );
