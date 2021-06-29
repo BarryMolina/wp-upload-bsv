@@ -212,31 +212,30 @@ class Wp_Upload_Bsv_Admin {
 			$tx_ids[$post_id] = array();
 			
 			foreach ($postData['prefixes'] as $prefix) {
+				// Send data to Node api
 				$response = $this->sendTransaction($markdown, $prefix, 'text/markdown', 'utf-8');
 
+				// If transaction was successful
 				if (!is_wp_error($response)) {
-					// print_r( $response['body'] );
 					$hash = json_decode($response['body'], true)['hash'];
-					$tx_ids[$post_id][] = $hash;
-					// echo $hash;
-					// print_r($hash);
 
+					// Package data pertaining to this transaction 
+					$tx_info = array(
+						'prefix' => $prefix,
+						'hash' 	 => $hash
+					);
+
+					// Link transaction info to post
+					$tx_ids[$post_id][] = $tx_info;
 				}
-				// Check for error
-				// if ( is_wp_error( $response ) ) {
-				// 	// $error_message = $response->get_error_message();
-				// 	// echo "Something went wrong: $error_message";
-				// 	return false;
-				// } 
-				// else {
-				// 	// echo 'Response:<pre>';
-				// 	// print_r( $response['body'] );
-				// 	// echo '</pre>';
-				// }
 			}
 		}
-		// Automatically convert array to JSON
+		// Automatically converts array to JSON
 		return $tx_ids;
+	}
+
+	public function parse_tx_response($res) {
+
 	}
 
 	// 

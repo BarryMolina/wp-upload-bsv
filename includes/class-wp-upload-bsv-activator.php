@@ -30,7 +30,22 @@ class Wp_Upload_Bsv_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
+		global $wpdb;
 
+		$table_name = $wpdb->prefix . "bsv_transactions";
+
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			post_id bigint(20) NOT NULL,
+			txid char(65) NOT NULL,
+			prefix varchar(65) DEFAULT '' NOT NULL,
+			time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
 	}
-
 }
