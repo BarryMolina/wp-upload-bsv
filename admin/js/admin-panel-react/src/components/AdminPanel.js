@@ -185,7 +185,7 @@ const AdminPanel = (props) => {
 	const classes = useStyles();
 
 	const handleSendClick = () => {
-		console.log(selections)
+		// console.log(selections)
 		// Create post data object
 		let postData = {
 			postIds: Array.from(Object.entries(selections), ([key, value]) => {
@@ -199,16 +199,16 @@ const AdminPanel = (props) => {
 			encoding: "utf-8"
 		}
 
-		console.log(postData)
-		console.log(JSON.stringify(postData))
+		// console.log(postData)
+		// console.log(JSON.stringify(postData))
 		axios.post(
 			wpbsv_ajax_obj.urls.transaction, 
 			postData,
 			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
 		)
-			.then( res => {
+			.then( res => (
 				console.log(res)
-			})
+			))
 			.catch( err => {
 				console.log(err)
 			})

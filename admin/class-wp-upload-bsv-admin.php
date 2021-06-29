@@ -207,12 +207,20 @@ class Wp_Upload_Bsv_Admin {
 
 		foreach ($postData['postIds'] as $post_id) {
 			$markdown = $this->markdown_from_id($post_id);
+
+			// Initialize txid array for this post
+			$tx_ids[$post_id] = array();
 			
 			foreach ($postData['prefixes'] as $prefix) {
 				$response = $this->sendTransaction($markdown, $prefix, 'text/markdown', 'utf-8');
 
 				if (!is_wp_error($response)) {
-					print_r( $response['body'] );
+					// print_r( $response['body'] );
+					$hash = json_decode($response['body'], true)['hash'];
+					$tx_ids[$post_id][] = $hash;
+					// echo $hash;
+					// print_r($hash);
+
 				}
 				// Check for error
 				// if ( is_wp_error( $response ) ) {
@@ -227,7 +235,8 @@ class Wp_Upload_Bsv_Admin {
 				// }
 			}
 		}
-		return json_encode($tx_ids);
+		// Automatically convert array to JSON
+		return $tx_ids;
 	}
 
 	// 
