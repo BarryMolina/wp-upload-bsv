@@ -42,6 +42,15 @@ class Wp_Upload_Bsv_Admin {
 	private $version;
 
 	/**
+	 * The class responsible for querying the database
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      Wp_Upload_Bsv_DB    $db    Handles database access
+	 */
+	protected $db;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -50,15 +59,19 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function __construct( $plugin_name, $version ) {
 
+		$this->load_dependencies();
+
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-		$this->load_dependencies();
+		$this->db = new Wp_Upload_Bsv_DB;
 
 	}
 
 	private function load_dependencies() {
 		// Load html-to-markdown
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+
 	}
 
 	/**
@@ -167,7 +180,7 @@ class Wp_Upload_Bsv_Admin {
 		}
 
 		// POST markdown to api
-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
 			'body'        => json_encode(['data' => $data]),
 			'method'      => 'POST',
@@ -219,14 +232,13 @@ class Wp_Upload_Bsv_Admin {
 				if (!is_wp_error($response)) {
 					$hash = json_decode($response['body'], true)['hash'];
 
-					// Package data pertaining to this transaction 
-					$tx_info = array(
-						'prefix' => $prefix,
-						'hash' 	 => $hash
-					);
+					$tx_info = $this->db->insert_tx($post_id, $hash, $prefix, current_time('mysql'));
 
 					// Link transaction info to post
 					$tx_ids[$post_id][] = $tx_info;
+				}
+				else {
+					echo "ERROR!";
 				}
 			}
 		}
@@ -234,6 +246,16 @@ class Wp_Upload_Bsv_Admin {
 		return $tx_ids;
 	}
 
+	public function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
+		$data = array($prefix, $content, $file_type, $encoding);
+		// Remove falsy elements
+		array_filter($data);
+
+		// Check that data exists
+		if (empty(data)) {
+			return new WP_Error('empty', 'Transaction contains no data');
+		}
+	}
 	public function parse_tx_response($res) {
 
 	}
@@ -283,6 +305,11 @@ class Wp_Upload_Bsv_Admin {
 			print_r( $response['body'] );
 			echo '</pre>';
 		}
+	}
+
+	public function tx_table_test() {
+		echo $this->db->get_tx_table();
+
 	}
 
 	/**
