@@ -201,6 +201,34 @@ class Wp_Upload_Bsv_Admin {
 	}
 
 	/**
+	 * Sends data off to api for upload to bsv
+	 *
+	 * @param 				array 				$data					An associative array of post ids and the data to send
+	 * @return 	array|WP_Error 			$out 					The response or WP_Error on failure
+	 */
+	public function send_transaction($data) {
+
+		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
+			'body'        => json_encode(['data' => $data]),
+			'method'      => 'POST',
+			'data_format' => 'body',
+		));
+
+    $code = wp_remote_retrieve_response_code($response);
+
+    // Check if bad request
+    if ($code < 200 || $code >= 400) {
+      $body = wp_remote_retrieve_body($response);
+      $out = new WP_Error($code ,$body);
+    }
+    else {
+      $out = $response;
+    }
+		return $out;
+	}
+
+	/**
 	 * Endpoint to receive post data from admin panel
 	 * Parse JSON params and send transactions
 	 *
@@ -216,37 +244,58 @@ class Wp_Upload_Bsv_Admin {
 			return false;
 		}
 
-		$tx_ids = array();
+		$data_to_send = array();
 
 		foreach ($postData['postIds'] as $post_id) {
 			$markdown = $this->markdown_from_id($post_id);
 
-			// Initialize txid array for this post
-			$tx_ids[$post_id] = array();
+			// Initialize array for this post
+			$data_to_send[$post_id] = array();
 			
 			foreach ($postData['prefixes'] as $prefix) {
-				// Send data to Node api
-				$response = $this->sendTransaction($markdown, $prefix, 'text/markdown', 'utf-8');
+				// Build data for each transaction
+				$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
+
+				// Link tx data to post
+				$data_to_send[$post_id][] = $tx_data;
+
 
 				// If transaction was successful
-				if (!is_wp_error($response)) {
-					$hash = json_decode($response['body'], true)['hash'];
+				// if (!is_wp_error($response)) {
+				// 	$hash = json_decode($response['body'], true)['hash'];
 
-					$tx_info = $this->db->insert_tx($post_id, $hash, $prefix, current_time('mysql'));
+				// 	$tx_info = $this->db->insert_tx($post_id, $hash, $prefix, current_time('mysql'));
 
-					// Link transaction info to post
-					$tx_ids[$post_id][] = $tx_info;
-				}
-				else {
-					echo "ERROR!";
-				}
+				// 	// Link transaction info to post
+				// 	$data_to_send[$post_id][] = $tx_info;
+				// }
+				// else {
+				// 	echo "ERROR!";
+				// }
 			}
 		}
+		// Send transaction
+		$response = $this->send_transaction($data_to_send);
+
+		// If transaction was successful
+		if (!is_wp_error($response)) {
+			$tx_ids = json_decode($response['body'], true);
+
+		return $data_to_send;
 		// Automatically converts array to JSON
-		return $tx_ids;
+		// return $tx_ids;
 	}
 
-	public function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
+	/**
+	 * Build BSV transaction data
+	 *
+	 * @param 	string 							$content			The data to send
+	 * @param 	string 							$prefix				Optional prefix
+	 * @param 	string 							$file_type		Optional file type
+	 * @param 	string 							$encoding			Optional encoding
+	 * @return 	array															The transaction data
+	 */
+	private function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
 		$data = array($prefix, $content, $file_type, $encoding);
 		// Remove falsy elements
 		array_filter($data);
@@ -255,7 +304,11 @@ class Wp_Upload_Bsv_Admin {
 		if (empty(data)) {
 			return new WP_Error('empty', 'Transaction contains no data');
 		}
+
+		return $data;
 	}
+
+
 	public function parse_tx_response($res) {
 
 	}
