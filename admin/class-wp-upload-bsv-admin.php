@@ -209,9 +209,10 @@ class Wp_Upload_Bsv_Admin {
 	public function send_transaction($data) {
 
 		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+			'method'      => 'POST',
+			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
 			'body'        => json_encode(['data' => $data]),
-			'method'      => 'POST',
 			'data_format' => 'body',
 		));
 
@@ -280,10 +281,11 @@ class Wp_Upload_Bsv_Admin {
 		// If transaction was successful
 		if (!is_wp_error($response)) {
 			$tx_ids = json_decode($response['body'], true);
+		}
 
-		return $data_to_send;
+		// return $data_to_send;
 		// Automatically converts array to JSON
-		// return $tx_ids;
+		return $tx_ids;
 	}
 
 	/**
