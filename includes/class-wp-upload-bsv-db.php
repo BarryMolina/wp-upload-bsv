@@ -21,7 +21,7 @@ class Wp_Upload_Bsv_DB {
 	 * @var      string    TRANSACTION_TABLE    The name assigned to the transactions table
 
 	 */
-	private const TX_TABLE = 'bsv_transactions';
+	public const TX_TABLE = 'bsv_transactions';
 
 	/**
 	 * Initialize the class and set its properties.
@@ -60,7 +60,7 @@ class Wp_Upload_Bsv_DB {
 			$tx_info
 		);
 
-		$tx_info['wp_id'] = $wpdb->insert_id;
+		$tx_info['id'] = $wpdb->insert_id;
 
 		return $tx_info;
 	}

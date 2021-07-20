@@ -280,12 +280,22 @@ class Wp_Upload_Bsv_Admin {
 
 		// If transaction was successful
 		if (!is_wp_error($response)) {
-			$tx_ids = json_decode($response['body'], true);
+			// Parse the txid data
+			$post_txids = json_decode($response['body'], true);
+			
+			$post_tx_records = array();
+			// Create entries in transactions table
+			foreach ($post_txids as $post_id => $txids) {
+				for ($x = 0; $x < count($txids); $x++) {
+					$tx_info = $this->db->insert_tx($post_id, $txids[$x], $postData['prefixes'][$x], current_time('mysql'));
+					$post_tx_records[$post_id][] = $tx_info;
+				}
+			}
+			return $post_tx_records;
 		}
-
 		// return $data_to_send;
 		// Automatically converts array to JSON
-		return $tx_ids;
+		return false;
 	}
 
 	/**
