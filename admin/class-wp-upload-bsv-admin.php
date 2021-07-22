@@ -110,6 +110,7 @@ class Wp_Upload_Bsv_Admin {
         'nonce' => wp_create_nonce('wp_rest'),
 				'urls' => array(
 					'transaction' => rest_url('wpbsv-upload-bsv/v1/transaction'),
+					'transactions' => rest_url('wpbsv-upload-bsv/v1/transactions'),
 				),
       )
     );
@@ -286,9 +287,9 @@ class Wp_Upload_Bsv_Admin {
 			$post_tx_records = array();
 			// Create entries in transactions table
 			foreach ($post_txids as $post_id => $txids) {
-				for ($x = 0; $x < count($txids); $x++) {
-					$tx_info = $this->db->insert_tx($post_id, $txids[$x], $postData['prefixes'][$x], current_time('mysql'));
-					$post_tx_records[$post_id][] = $tx_info;
+				for ($i = 0; $i < count($txids); $i++) {
+					$tx_info = $this->db->insert_tx($post_id, $txids[$i], $postData['prefixes'][$i], current_time('mysql'));
+					$post_tx_records[] = $tx_info;
 				}
 			}
 			return $post_tx_records;
@@ -296,6 +297,15 @@ class Wp_Upload_Bsv_Admin {
 		// return $data_to_send;
 		// Automatically converts array to JSON
 		return false;
+	}
+
+	public function handle_get_transactions($data) {
+		global $wpdb;
+		$tx_table_name = $this->db->get_tx_table();
+		
+		$query = "SELECT * FROM $tx_table_name";
+		$transactions = $wpdb->get_results($query);
+		return $transactions;
 	}
 
 	/**
@@ -349,6 +359,10 @@ class Wp_Upload_Bsv_Admin {
 			// 	return current_user_can( 'publish_posts' );
 			// }
 			'permission_callback' => '__return_true'
+		));
+		register_rest_route('wpbsv-upload-bsv/v1', '/transactions', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'handle_get_transactions'),
 		));
 	}
 	public function markdown_test() {

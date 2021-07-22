@@ -92,6 +92,7 @@ const Row = ( props ) => {
 	// const [open, setOpen] = useState(false)
 	const classes = useStyles();
 
+	// console.log(transactions)
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
@@ -113,39 +114,41 @@ const Row = ( props ) => {
 				<TableCell align="right">{row.date}</TableCell>
 				<TableCell align="right">{row.type}</TableCell>
 			</TableRow>
-			<TableRow>
-				<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
-					<Collapse in={isExpanded} timeout="auto" unmountOnExit>
-						<Box margin={1}>
-							<Typography variant="h6" gutterBottom component="div">
-								Transaction History
-							</Typography>
-							<Table size="small" aria-label="transactions">
-								<TableHead>
-									<TableRow>
-										<TableCell>Date</TableCell>
-										<TableCell>Prefix</TableCell>
-										<TableCell>Txid</TableCell>
-										<TableCell>Preview</TableCell>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{transactions && transactions.map( tx => (
-										<TableRow key={tx.time}>
-											<TableCell component="th" scope="row">
-												{tx.time}
-											</TableCell>
-											<TableCell>{tx.prefix}</TableCell>
-											<TableCell>{tx.tx_id}</TableCell>
-											<TableCell>link</TableCell>
+			{transactions && 
+				<TableRow>
+					<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+						<Collapse in={isExpanded} timeout="auto" unmountOnExit>
+							<Box margin={1}>
+								<Typography variant="h6" gutterBottom component="div">
+									Transaction History
+								</Typography>
+								<Table size="small" aria-label="transactions">
+									<TableHead>
+										<TableRow>
+											<TableCell>Date</TableCell>
+											<TableCell>Prefix</TableCell>
+											<TableCell>Txid</TableCell>
+											<TableCell>Preview</TableCell>
 										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</Box>
-					</Collapse>
-				</TableCell>
-			</TableRow>
+									</TableHead>
+									<TableBody>
+										{transactions && transactions.map( tx => (
+											<TableRow key={tx.id}>
+												<TableCell component="th" scope="row">
+													{tx.time}
+												</TableCell>
+												<TableCell>{tx.prefix}</TableCell>
+												<TableCell>{tx.tx_id}</TableCell>
+												<TableCell>link</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</Box>
+						</Collapse>
+					</TableCell>
+				</TableRow>
+			}
 		</React.Fragment>
 	)
 }
@@ -166,18 +169,26 @@ const AdminPanel = (props) => {
   } = props;
 
 	const [posts, setPosts] = useState([])
-	const [transactions, setTransactions] = useState({})
+	const [transactions, setTransactions] = useState([])
 	const [expanded, setExpanded] = useState([])
 	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
 	const [prefixTextValues, setPrefixTextValues] = useState([''])
 
-	useEffect(() => {
+	useEffect( () => {
+		// console.log("running")
 		axios.get(wpURL + '/wp/v2/posts')
-			.then((res) => {
+			.then( res => {
 				// console.log(res)
 				setPosts(res.data)
 			})
-			.catch((err) => {
+			.catch( err => {
+				console.log(err)
+			})
+		axios.get(wpbsv_ajax_obj.urls.transactions)
+			.then( res => {
+				setTransactions(res.data)
+			})
+			.catch( err => {
 				console.log(err)
 			})
 	}, [])
@@ -207,8 +218,8 @@ const AdminPanel = (props) => {
 			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
 		)
 			.then( res => { 
-				// console.log(res)
-				setTransactions(res.data)
+				// console.log(res.data)
+				setTransactions([...transactions, ...res.data])
 			 })
 			.catch( err => {
 				console.log(err)
@@ -283,7 +294,7 @@ const AdminPanel = (props) => {
 
 	// console.log(prefixSelectValue)
 	// console.log(prefixTextValue)
-	console.log(transactions)
+	// console.log(transactions)
 	return (
 		<div>
 			<TableContainer component={Paper}>
@@ -319,7 +330,7 @@ const AdminPanel = (props) => {
 									handleClick={handleClick}
 									handleExpand={handleExpand}
 									isExpanded={isExpanded(post.id)}
-									transactions={transactions[post.id]}
+									transactions={transactions.filter( tx => tx.post_id == post.id )}
 								/>
 							)
 						})}
