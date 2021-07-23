@@ -92,7 +92,6 @@ const Row = ( props ) => {
 	// const [open, setOpen] = useState(false)
 	const classes = useStyles();
 
-	// console.log(transactions)
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
@@ -110,45 +109,47 @@ const Row = ( props ) => {
 				<TableCell component="th" scope="row">
 					<Link href={row.link} target="_blank">{row.title.rendered}</Link>
 				</TableCell>
-				<TableCell align="right">{row.author}</TableCell>
-				<TableCell align="right">{row.date}</TableCell>
-				<TableCell align="right">{row.type}</TableCell>
+				<TableCell>{row.author_name}</TableCell>
+				<TableCell>{row.date}</TableCell>
+				<TableCell>{row.type}</TableCell>
 			</TableRow>
-			{transactions && 
-				<TableRow>
-					<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
-						<Collapse in={isExpanded} timeout="auto" unmountOnExit>
-							<Box margin={1}>
-								<Typography variant="h6" gutterBottom component="div">
-									Transaction History
-								</Typography>
-								<Table size="small" aria-label="transactions">
-									<TableHead>
-										<TableRow>
-											<TableCell>Date</TableCell>
-											<TableCell>Prefix</TableCell>
-											<TableCell>Txid</TableCell>
-											<TableCell>Preview</TableCell>
-										</TableRow>
-									</TableHead>
-									<TableBody>
-										{transactions && transactions.map( tx => (
-											<TableRow key={tx.id}>
-												<TableCell component="th" scope="row">
-													{tx.time}
-												</TableCell>
-												<TableCell>{tx.prefix}</TableCell>
-												<TableCell>{tx.tx_id}</TableCell>
-												<TableCell>link</TableCell>
+			<TableRow>
+				<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+					<Collapse in={isExpanded} timeout="auto" unmountOnExit>
+						<Box margin={1}>
+							<Typography variant="h6" gutterBottom component="div">
+								Transaction History
+							</Typography>
+							{ transactions.length > 0 ? 
+									<Table size="small" aria-label="transactions">
+										<TableHead>
+											<TableRow>
+												<TableCell>Date</TableCell>
+												<TableCell>Prefix</TableCell>
+												<TableCell>Txid</TableCell>
+												<TableCell>Preview</TableCell>
 											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</Box>
-						</Collapse>
-					</TableCell>
-				</TableRow>
-			}
+										</TableHead>
+										<TableBody>
+											{transactions.map( tx => (
+												<TableRow key={tx.id}>
+													<TableCell component="th" scope="row">
+														{tx.time}
+													</TableCell>
+													<TableCell>{tx.prefix}</TableCell>
+													<TableCell>{tx.tx_id}</TableCell>
+													<TableCell>link</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+							 : 
+							 	<p>There are no transactions linked to this post.</p>
+							}
+						</Box>
+					</Collapse>
+				</TableCell>
+			</TableRow>
 		</React.Fragment>
 	)
 }
@@ -179,7 +180,27 @@ const AdminPanel = (props) => {
 		axios.get(wpURL + '/wp/v2/posts')
 			.then( res => {
 				// console.log(res)
-				setPosts(res.data)
+				const postData = res.data
+				// Get list of unique author ids
+				const authorIds = [...new Set(postData.map( post => post.author))]
+				Promise.all(
+					authorIds.map( id => axios.get(`${wpURL}/wp/v2/users/${id}`))
+				)
+					.then( responses => {
+						return Promise.all(
+							responses.map( res => res.data)
+						)
+					})
+					.then( users => {
+						let authorNames = {}
+						// Add author names to post data
+						authorIds.forEach( (id, idx) => authorNames[id] = users[idx].name)
+						postData.forEach(post => post.author_name = authorNames[post.author])
+						setPosts(postData)
+					})
+					.catch( err => {
+						console.log(err)
+					})
 			})
 			.catch( err => {
 				console.log(err)
@@ -315,9 +336,9 @@ const AdminPanel = (props) => {
 							</TableCell>
 							<TableCell>Mirrored</TableCell>
 							<TableCell>Post</TableCell>
-							<TableCell align="right">Author</TableCell>
-							<TableCell align="right">Date</TableCell>
-							<TableCell align="right">Type</TableCell>
+							<TableCell>Author</TableCell>
+							<TableCell>Date</TableCell>
+							<TableCell>Type</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
