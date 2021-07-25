@@ -23,6 +23,7 @@ import Link from '@material-ui/core/Link';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { forEach } from 'lodash';
+import moment from 'moment';
 
 import TxOptions from './TxOptions';
 
@@ -30,6 +31,10 @@ const wpURL = 'http://localhost:8888/wordpress/wp-json'
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
+		'& tbody tr:last-child': {
+			backgroundColor: 'green',
+			padding: '1rem'
+		}
   },
 	button: {
     '& > *': {
@@ -81,7 +86,7 @@ const PrefixContainer = styled.div`
 
 const Row = ( props ) => {
 	const { 
-		row, 
+		post, 
 		isItemSelected, 
 		handleClick,
 		handleExpand,
@@ -90,28 +95,31 @@ const Row = ( props ) => {
 	} = props
 
 	// const [open, setOpen] = useState(false)
-	const classes = useStyles();
+	const classes = useStyles()
 
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
 				<TableCell padding="checkbox">
 					<Checkbox
-						checked={isItemSelected(row.id)} onClick={() => handleClick(row.id)}
+						checked={isItemSelected(post.id)} onClick={() => handleClick(post.id)}
 					/>
 				</TableCell>
 				<TableCell>
-					<IconButton aria-label="expand row" size="small" onClick={() => handleExpand(row.id)}>
+					<IconButton aria-label="expand row" size="small" onClick={() => handleExpand(post.id)}>
 						{isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
 					</IconButton>
 				</TableCell>
 				<TableCell>Mirrored</TableCell>
 				<TableCell component="th" scope="row">
-					<Link href={row.link} target="_blank">{row.title.rendered}</Link>
+					<Link href={post.link} target="_blank">{post.title.rendered}</Link>
 				</TableCell>
-				<TableCell>{row.author_name}</TableCell>
-				<TableCell>{row.date}</TableCell>
-				<TableCell>{row.type}</TableCell>
+				<TableCell>{post.author_name}</TableCell>
+				{post.modified > post.date ? 
+					<TableCell>Last Modified<br/>{moment(post.modified).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
+				:
+					<TableCell>Published<br/>{moment(post.date).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
+				}
 			</TableRow>
 			<TableRow>
 				<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
@@ -338,7 +346,6 @@ const AdminPanel = (props) => {
 							<TableCell>Post</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
-							<TableCell>Type</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -346,7 +353,7 @@ const AdminPanel = (props) => {
 							return (
 								<Row 
 									key={post.id} 
-									row={post} 
+									post={post} 
 									isItemSelected={isItemSelected} 
 									handleClick={handleClick}
 									handleExpand={handleExpand}
