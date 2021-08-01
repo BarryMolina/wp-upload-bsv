@@ -26,14 +26,16 @@ import { forEach } from 'lodash';
 import moment from 'moment';
 
 import TxOptions from './TxOptions';
+import { green } from '@material-ui/core/colors';
 
 const wpURL = 'http://localhost:8888/wordpress/wp-json'
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
-		'& tbody tr:last-child': {
-			backgroundColor: 'green',
-			padding: '1rem'
+		'& > tbody tr:last-child > td': {
+			// backgroundColor: 'green',
+			// padding: '1rem'
+			borderBottom: 'none',
 		}
   },
 	button: {
@@ -42,11 +44,21 @@ const useStyles = makeStyles({
     },
   },
 	row: {
+		// backgroundColor: 'rgba(224, 224, 224, 1)',
     '& > *': {
       borderBottom: 'unset',
       borderTop: 'unset',
     },
   },
+	green: {
+		color: 'green',
+	},
+	red: {
+		color: 'red',
+	},
+	orange: {
+		color: 'orange',
+	},
 	inputContainer: {
 		padding: '1rem 0',
 		display: 'flex',
@@ -110,7 +122,15 @@ const Row = ( props ) => {
 						{isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
 					</IconButton>
 				</TableCell>
-				<TableCell>Mirrored</TableCell>
+				{transactions.length > 0 ? 
+				// Check that at least one transaction was made after the last modified date
+					transactions.some(tx => moment(tx.time).isAfter(post.modified)) ? 
+						<TableCell className={classes.green}>Mirrored</TableCell>
+					:
+						<TableCell className={classes.orange}>Modified</TableCell>
+				:
+					<TableCell className={classes.red}>Not Mirrored</TableCell>
+				}
 				<TableCell component="th" scope="row">
 					<Link href={post.link} target="_blank">{post.title.rendered}</Link>
 				</TableCell>
@@ -132,21 +152,17 @@ const Row = ( props ) => {
 									<Table size="small" aria-label="transactions">
 										<TableHead>
 											<TableRow>
-												<TableCell>Date</TableCell>
+												<TableCell>Date Posted</TableCell>
 												<TableCell>Prefix</TableCell>
 												<TableCell>Txid</TableCell>
-												<TableCell>Preview</TableCell>
 											</TableRow>
 										</TableHead>
 										<TableBody>
 											{transactions.map( tx => (
 												<TableRow key={tx.id}>
-													<TableCell component="th" scope="row">
-														{tx.time}
-													</TableCell>
+													<TableCell>{moment(tx.time).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
 													<TableCell>{tx.prefix}</TableCell>
-													<TableCell>{tx.tx_id}</TableCell>
-													<TableCell>link</TableCell>
+													<TableCell><Link href={`https://bico.media/${tx.tx_id}`}>{tx.tx_id}</Link></TableCell>
 												</TableRow>
 											))}
 										</TableBody>
@@ -342,7 +358,7 @@ const AdminPanel = (props) => {
 									{areAllExpanded() ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon /> }
 								</IconButton>
 							</TableCell>
-							<TableCell>Mirrored</TableCell>
+							<TableCell>Mirrored?</TableCell>
 							<TableCell>Post</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
