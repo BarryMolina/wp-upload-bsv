@@ -20,9 +20,7 @@ import Collapse from '@material-ui/core/Collapse';
 import Box from '@material-ui/core/Box';
 import withSelections from 'react-item-select'
 import Link from '@material-ui/core/Link';
-import TextField from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import { forEach } from 'lodash';
+import CircularProgress from '@material-ui/core/CircularProgress'
 import moment from 'moment';
 
 import TxOptions from './TxOptions';
@@ -43,6 +41,14 @@ const useStyles = makeStyles({
       // margin: theme.spacing(1),
     },
   },
+	buttons: {
+		display: 'flex',
+		alignItems: 'center',
+		'& > :not(:first-child)': {
+			marginLeft: '.5rem',
+		},
+		// '& > '
+	},
 	row: {
 		// backgroundColor: 'rgba(224, 224, 224, 1)',
     '& > *': {
@@ -59,40 +65,9 @@ const useStyles = makeStyles({
 	orange: {
 		color: 'orange',
 	},
-	inputContainer: {
-		padding: '1rem 0',
-		display: 'flex',
-		alignItems: 'center',
-		'& label': {
-			fontSize: '1rem',
-		},
-		'& > :not(:first-child)': {
-			marginLeft: '.4rem',
-		},
-		'& input[type="text"]': {
-			width: "250px",
-		}
-	}
-	// textField: {
-		// '& label': {
-		// 	top: '-3px'
-		// },
-		// '& label:focus': {
-		// 	top: 0
-		// }
-    // '& > *': {
-		// 	backgroundColor: '#ffff'
-		// '& input': {
-		// 	border: 'none',
-		// 	minHeight: '0px',
-		// },
-		// '& input:focus': {
-		// 	boxShadow: 'none'
-		// }
-	// }
 });
 
-const PrefixContainer = styled.div`
+const Prefixes = styled.div`
 	padding: 1rem 0;
 `
 
@@ -198,6 +173,7 @@ const AdminPanel = (props) => {
 	const [expanded, setExpanded] = useState([])
 	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
 	const [prefixTextValues, setPrefixTextValues] = useState([''])
+	const [loading, setLoading] = useState(false)
 
 	useEffect( () => {
 		// console.log("running")
@@ -242,6 +218,8 @@ const AdminPanel = (props) => {
 
 	const handleSendClick = () => {
 		// console.log(selections)
+
+		setLoading(true);
 		// Create post data object
 		let postData = {
 			postIds: Array.from(Object.entries(selections), ([key, value]) => {
@@ -265,8 +243,11 @@ const AdminPanel = (props) => {
 			.then( res => { 
 				// console.log(res.data)
 				setTransactions([...transactions, ...res.data])
+				handleClearAll(posts)
+				setLoading(false)
 			 })
 			.catch( err => {
+				setLoading(false)
 				console.log(err)
 			})
 	}
@@ -358,7 +339,7 @@ const AdminPanel = (props) => {
 									{areAllExpanded() ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon /> }
 								</IconButton>
 							</TableCell>
-							<TableCell>Mirrored?</TableCell>
+							<TableCell>Status</TableCell>
 							<TableCell>Post</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
@@ -381,7 +362,7 @@ const AdminPanel = (props) => {
 					</TableBody>
 				</Table>
 			</TableContainer>
-			<PrefixContainer>
+			<Prefixes>
 			{
 				prefixSelectValues.map((value, i) => (
 					<TxOptions
@@ -395,14 +376,16 @@ const AdminPanel = (props) => {
 					/>
 				))
 			}
-			</PrefixContainer> 
-			<Button variant="contained" color="secondary" onClick={addPrefixHandler}>Add Prefix</Button>
-			<Button 
-				style={{ marginLeft: ".5rem"}} 
-				variant="contained" 
-				color="primary" 
-				onClick={() => handleSendClick()}
-			>Send</Button>
+			</Prefixes> 
+			<div className={classes.buttons}>
+				<Button variant="contained" color="secondary" onClick={addPrefixHandler}>Add Prefix</Button>
+				<Button 
+					variant="contained" 
+					color="primary" 
+					onClick={() => handleSendClick()}
+				>Send</Button>
+				{ loading && <CircularProgress style={{width: '32px', height: '32px'}} /> }
+			</div>
 		</div>
 	)
 }
