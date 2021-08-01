@@ -161,47 +161,6 @@ class Wp_Upload_Bsv_Admin {
 	}
 
 	/**
-	 * Send POST request to api to create BSV transaction
-	 * Called from admin panel and when post is published
-	 *
-	 * @param 	string 							$content			The data to send
-	 * @param 	string 							$prefix				Optional prefix
-	 * @param 	string 							$file_type		Optional file type
-	 * @param 	string 							$encoding			Optional encoding
-	 * @return 	array|WP_Error 			$out 					The response or WP_Error on failure
-	 */
-	public function sendTransaction($content, $prefix='', $file_type='', $encoding='') {
-		$data = array($prefix, $content, $file_type, $encoding);
-		// Remove falsy elements
-		array_filter($data);
-
-		// Check that data exists
-		if (empty(data)) {
-			return new WP_Error('empty', 'Transaction contains no data');
-		}
-
-		// POST markdown to api
-		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
-			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
-			'body'        => json_encode(['data' => $data]),
-			'method'      => 'POST',
-			'data_format' => 'body',
-		));
-
-    $code = wp_remote_retrieve_response_code($response);
-
-    // Check if bad request
-    if ($code < 200 || $code >= 400) {
-      $body = wp_remote_retrieve_body($response);
-      $out = new WP_Error($code ,$body);
-    }
-    else {
-      $out = $response;
-    }
-		return $out;
-	}
-
-	/**
 	 * Sends data off to api for upload to bsv
 	 *
 	 * @param 				array 				$data					An associative array of post ids and the data to send
@@ -209,7 +168,7 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function send_transaction($data) {
 
-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
 			'method'      => 'POST',
 			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),

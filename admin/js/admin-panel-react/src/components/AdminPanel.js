@@ -137,7 +137,7 @@ const Row = ( props ) => {
 												<TableRow key={tx.id}>
 													<TableCell>{moment(tx.time).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
 													<TableCell>{tx.prefix}</TableCell>
-													<TableCell><Link href={`https://bico.media/${tx.tx_id}`}>{tx.tx_id}</Link></TableCell>
+													<TableCell><Link href={`https://bico.media/${tx.tx_id}`} target="_blank">{tx.tx_id}</Link></TableCell>
 												</TableRow>
 											))}
 										</TableBody>
@@ -317,10 +317,6 @@ const AdminPanel = (props) => {
 
 	}
 
-
-	// console.log(prefixSelectValue)
-	// console.log(prefixTextValue)
-	// console.log(transactions)
 	return (
 		<div>
 			<TableContainer component={Paper}>

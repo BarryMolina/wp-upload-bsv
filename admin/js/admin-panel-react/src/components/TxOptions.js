@@ -24,16 +24,6 @@ const useStyles = makeStyles({
 const protocols = new Map()
 protocols.set('B://', '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut')
 protocols.set('D://', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU')
-// const protocols = [ 
-// 	{
-// 		name: 'B://',
-// 		prefix: '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 
-// 	},
-// 	{
-// 		name: 'D://',
-// 		prefix: '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU'
-// 	}
-// ]
 
 let selectedProtocol = {}
 
