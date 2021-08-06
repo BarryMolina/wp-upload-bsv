@@ -117,6 +117,16 @@ class Wp_Upload_Bsv {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-admin.php';
 
 		/**
+		 * The class responsible for defining the tools page.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tools.php';
+
+		/**
+		 * The class responsible for defining the settings page.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-settings.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
@@ -153,15 +163,25 @@ class Wp_Upload_Bsv {
 	private function define_admin_hooks() {
 
 		$plugin_admin = new Wp_Upload_Bsv_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_tools = new Wp_Upload_Bsv_Tools( $this->get_plugin_name(), $this->get_version() );
+		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
-		$this->loader->add_action( 'admin_menu', $plugin_admin, 'setup_plugin_management_menu' );
+		// Tools page
+		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_tools, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_menu', $plugin_tools, 'setup_plugin_management_menu' );
+
+		// Settings page
+		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_settings, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
+
+		// API Controller
+		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'register_bsv_api' );
+
 		// $this->loader->add_action( 'admin_init', $plugin_admin, 'tx_table_test' );
 		// $this->loader->add_action( 'admin_init', $plugin_admin, 'markdown_test' );
 		// $this->loader->add_action( 'wp_ajax_wpbsv_send_transaction', $plugin_admin, 'send_transaction_handler' );
-		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'register_bsv_api' );
 
 		// $this->loader->add_action( 'publish_post', $plugin_admin, 'uploadPost');
 		// $this->loader->add_action( 'wp_print_scripts', $plugin_admin, 'se_inspect_scripts' );

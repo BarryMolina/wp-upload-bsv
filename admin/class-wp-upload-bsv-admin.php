@@ -91,73 +91,6 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function enqueue_scripts($hook) {
 
-		// Only enqueue script on tools page
-		if ('tools_page_wpbsv_upload' !== $hook) {
-			return;
-		}
-
-		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
-		}
-		// Production scripts
-		else {
-			wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
-		}
-		wp_localize_script(
-      'wpbsv-admin-panel-react',
-      'wpbsv_ajax_obj', 
-      array(
-        'nonce' => wp_create_nonce('wp_rest'),
-				'urls' => array(
-					'transaction' => rest_url('wpbsv-upload-bsv/v1/transaction'),
-					'transactions' => rest_url('wpbsv-upload-bsv/v1/transactions'),
-				),
-      )
-    );
-	}
-
-	/**
-	 * Add a submenu page for this plugin to the Tools menu
-	 * 
-	 */
-	public function setup_plugin_management_menu() {
-
-		add_management_page(
-			'Upload Posts to BSV', 					// The title to be displayed in the browser window for this page.
-			'Mirror to BSV',					// The text to be displayed for this menu item
-			'manage_options',					// Which type of users can see this menu item
-			'wpbsv_upload',			// The unique ID - that is, the slug - for this menu item
-			array( $this, 'render_management_page_content')				// The name of the function to call when rendering this menu's page
-		);
-
-	}
-		/**
-	 * Renders the contents of the settings page
-	 */
-	public function render_management_page_content() {
-		// check user capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-		  return;
-		}
-		?>
-			<div class="wrap">
-				<h2>Mirror Posts to BSV</h2>
-				<div id='money-button'></div>
-				<p id='wpbsv-message'></p>
-			</div>
-			<div id="wpbsv-admin-panel-svelte"></div>
-			<div id="wpbsv-admin-panel"></div>
-			<div id="wpbsv-auto-upload"></div>
-		<?php
-		}
-
-	/**
-	 * Undocumented function
-	 *
-	 * @return void
-	 */
-	public function onPublishPost() {
-		echo 'post published';
 	}
 
 	/**
@@ -168,7 +101,7 @@ class Wp_Upload_Bsv_Admin {
 	 */
 	public function send_transaction($data) {
 
-		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
+		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
 			'method'      => 'POST',
 			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
