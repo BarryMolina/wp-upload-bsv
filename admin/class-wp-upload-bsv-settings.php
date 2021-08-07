@@ -106,8 +106,8 @@ class Wp_Upload_Bsv_Settings {
       array(
         'nonce' => wp_create_nonce('wp_rest'),
 				'urls' => array(
-					'transaction' => rest_url('wpbsv-upload-bsv/v1/transaction'),
-					'transactions' => rest_url('wpbsv-upload-bsv/v1/transactions'),
+					// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
+					'api' => get_rest_url(),
 				),
       )
     );

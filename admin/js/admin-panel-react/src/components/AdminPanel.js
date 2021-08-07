@@ -26,7 +26,9 @@ import moment from 'moment';
 import TxOptions from './TxOptions';
 import { green } from '@material-ui/core/colors';
 
-const wpURL = 'http://localhost:8888/wordpress/wp-json'
+// const wpURL = 'http://localhost:8888/wordpress/wp-json'
+// With trailing slash
+const wpURL = wpbsv_ajax_obj.urls.api
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
@@ -177,14 +179,14 @@ const AdminPanel = (props) => {
 
 	useEffect( () => {
 		// console.log("running")
-		axios.get(wpURL + '/wp/v2/posts')
+		axios.get(wpURL + 'wp/v2/posts')
 			.then( res => {
 				// console.log(res)
 				const postData = res.data
 				// Get list of unique author ids
 				const authorIds = [...new Set(postData.map( post => post.author))]
 				Promise.all(
-					authorIds.map( id => axios.get(`${wpURL}/wp/v2/users/${id}`))
+					authorIds.map( id => axios.get(`${wpURL}wp/v2/users/${id}`))
 				)
 					.then( responses => {
 						return Promise.all(
@@ -205,7 +207,7 @@ const AdminPanel = (props) => {
 			.catch( err => {
 				console.log(err)
 			})
-		axios.get(wpbsv_ajax_obj.urls.transactions)
+		axios.get(`${wpURL}wpbsv/v1/transactions`)
 			.then( res => {
 				setTransactions(res.data)
 			})
@@ -236,7 +238,7 @@ const AdminPanel = (props) => {
 		// console.log(postData)
 		// console.log(JSON.stringify(postData))
 		axios.post(
-			wpbsv_ajax_obj.urls.transaction, 
+			`${wpURL}wpbsv/v1/transactions`, 
 			postData,
 			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
 		)
