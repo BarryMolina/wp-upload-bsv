@@ -50,23 +50,35 @@ class Wp_Upload_Bsv_API_Controller {
 	protected $db;
 
 	/**
+	 * The class responsible for building and sending transactions
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      Wp_Upload_Bsv_Tx_Builder    $tx_builder    build and sends transactions
+	 */
+	protected $tx_builder;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct() {
+	public function __construct( $plugin_name, $version ) {
 
 		$this->load_dependencies();
 
-		$this->db = new Wp_Upload_Bsv_DB;
+		$this->plugin_name = $plugin_name;
+		$this->version = $version;
 
+		$this->db = new Wp_Upload_Bsv_DB;
+		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder;
 	}
 
 	private function load_dependencies() {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
-
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tx-builder.php';
 	}
 
 	/**
@@ -125,151 +137,13 @@ class Wp_Upload_Bsv_API_Controller {
 		// Get the parsed JSON request body as array
 		$postData = $request->get_json_params();
 
-		if (empty($postData['postIds'])) {
-			return false;
-		}
-
-		$data_to_send = array();
-
-		foreach ($postData['postIds'] as $post_id) {
-			$markdown = $this->markdown_from_id($post_id);
-
-			// Initialize array for this post
-			$data_to_send[$post_id] = array();
-			
-			foreach ($postData['prefixes'] as $prefix) {
-				// Build data for each transaction
-				$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
-
-				// Link tx data to post
-				$data_to_send[$post_id][] = $tx_data;
-			}
-		}
-		// Send transaction
-		$response = $this->send_transaction($data_to_send);
-
-		// If transaction was successful
-		if (!is_wp_error($response)) {
-			// Parse the txid data
-			$post_txids = json_decode($response['body'], true);
-			
-			$response_data = array();
-			// Create entries in transactions table
-			foreach ($post_txids as $post_id => $txids) {
-				for ($i = 0; $i < count($txids); $i++) {
-					$tx_info = $this->db->insert_tx($post_id, $txids[$i], $postData['prefixes'][$i], current_time('mysql'));
-					$response_data[] = $tx_info;
-				}
-			}
-			// Automatically converts array to JSON
-			return $response_data;
-		}
-		return false;
-	}
-
-	/**
-	 * Sends data off to Node api for upload to bsv
-	 *
-	 * @param 				array 				$data					An associative array of post ids and the data to send
-	 * @return 	array|WP_Error 			$out 					The response or WP_Error on failure
-	 */
-	public function send_transaction($data) {
-
-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
-			'method'      => 'POST',
-			'timeout'			=> 120,
-			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
-			'body'        => json_encode(['data' => $data]),
-			'data_format' => 'body',
-		));
-
-    $code = wp_remote_retrieve_response_code($response);
-
-    // Check if bad request
-    if ($code < 200 || $code >= 400) {
-      $body = wp_remote_retrieve_body($response);
-      $out = new WP_Error($code ,$body);
-    }
-    else {
-      $out = $response;
-    }
-		return $out;
-	}
-
-
-	/**
-	 * Build BSV transaction data
-	 *
-	 * @param 	string 							$content			The data to send
-	 * @param 	string 							$prefix				Optional prefix
-	 * @param 	string 							$file_type		Optional file type
-	 * @param 	string 							$encoding			Optional encoding
-	 * @return 	array															The transaction data
-	 */
-	private function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
-		$data = array($prefix, $content, $file_type, $encoding);
-		// Remove falsy elements
-		array_filter($data);
-
-		// Check that data exists
-		if (empty(data)) {
-			return new WP_Error('empty', 'Transaction contains no data');
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Retrieve post by id and convert to markdown
-	 *
-	 * @param 		int 		$post_id			The id of the post
-	 * @return 		string								The post markdown
-	 */
-	public function markdown_from_id($post_id) {
-		$post = get_post($post_id, OBJECT, 'display');
-		return $this->markdown_from_post($post);
-	}
-
-	/**
-	 * Create markdown from post object
-	 *
-	 * @param 		WP_Post 		$post					The post to convert
-	 * @return 		string 			$markdown			The post markdown
-	 */
-	private function markdown_from_post($post) {
-
-		$title = get_the_title($post);
-
-		$meta = array(
-			'title' 				=> $title,
-			'author' 				=> get_the_author_meta('display_name', $post->post_author),
-			'slug' 					=> $post->post_name,
-			'published_gmt' => $post->post_date_gmt,
-			'modified_gmt' 	=> $post->post_modified_gmt,
-			'tx_date_gmt' 	=> gmdate('Y-m-d H:i:s'),
-		);
-
-		// Build frontmatter
-		$frontmatter = '<!--';
-		foreach ($meta as $key => $value) {
-			$frontmatter .= "\n$key: \"$value\"";
-		}
-		$frontmatter .= "\n-->\n\n";
-
-		// Set converter options
-		$converter_options = array(
-			'strip_tags' => true,
-		);
-		// Instantiate converter
-		$converter = new League\HTMLToMarkdown\HtmlConverter($converter_options);
-
-		// Title markdown
-		$title_md = "# $title\n\n";
-
-		// Content to markdown
-		$content = apply_filters('the_content', $post->post_content);
-		$markdown = $converter->convert($content);
-
-		return $frontmatter . $title_md . $markdown;
+		// return $postData;
+		// return new WP_Error('error_code', 'this is an error', array('status' => 401) );
+		// return new WP_REST_Response(['data' => ['error' => 'no posts']], 400);
+		$response = $this->tx_builder->send_many($postData);
+		return $response;
+		// if (!is_wp_error($response)) {
+		// 	return $response
+		// }
 	}
 }

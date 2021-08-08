@@ -93,6 +93,12 @@ class Wp_Upload_Bsv_Admin {
 
 	}
 
+	function sample_admin_notice__error() {
+    $class = 'notice notice-error';
+    $message = 'Irks! An error has occurred.';
+ 
+    printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
+	}
 	/**
 	 * Sends data off to api for upload to bsv
 	 *

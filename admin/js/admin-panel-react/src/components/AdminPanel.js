@@ -243,14 +243,14 @@ const AdminPanel = (props) => {
 			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
 		)
 			.then( res => { 
-				// console.log(res.data)
+				console.log(res)
 				setTransactions([...transactions, ...res.data])
 				handleClearAll(posts)
 				setLoading(false)
 			 })
 			.catch( err => {
 				setLoading(false)
-				console.log(err)
+				console.log(err.response)
 			})
 	}
 
@@ -321,6 +321,7 @@ const AdminPanel = (props) => {
 
 	return (
 		<div>
+			<div class="notice notice-error is-dismissible"><p>Error!</p></div>
 			<TableContainer component={Paper}>
 				<Table className={classes.table} aria-label="simple table">
 					<TableHead>
