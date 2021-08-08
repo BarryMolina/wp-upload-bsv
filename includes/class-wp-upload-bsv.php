@@ -132,6 +132,11 @@ class Wp_Upload_Bsv {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-api-controller.php';
 
 		/**
+		 * The class responsible for building and sending transactions
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tx-builder.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
@@ -171,6 +176,7 @@ class Wp_Upload_Bsv {
 		$plugin_tools = new Wp_Upload_Bsv_Tools( $this->get_plugin_name(), $this->get_version() );
 		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
+		$tx_builder = new Wp_Upload_Bsv_Tx_Builder( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 
@@ -182,10 +188,12 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_settings, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
 
-		// API Controller
+		// API Controller endpoints
 		$this->loader->add_action( 'rest_api_init', $controller, 'register_endpoints' );
 
-		// $this->loader->add_action( 'admin_notices', $plugin_admin, 'sample_admin_notice__error' );
+		// Auto upload posts
+		$this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
+
 
 		// $this->loader->add_action( 'admin_init', $plugin_admin, 'tx_table_test' );
 		// $this->loader->add_action( 'admin_init', $plugin_admin, 'markdown_test' );

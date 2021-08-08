@@ -73,7 +73,7 @@ class Wp_Upload_Bsv_API_Controller {
 		$this->version = $version;
 
 		$this->db = new Wp_Upload_Bsv_DB;
-		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder;
+		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder($this->plugin_name, $this->version);
 	}
 
 	private function load_dependencies() {
@@ -110,6 +110,7 @@ class Wp_Upload_Bsv_API_Controller {
 		register_rest_route('wpbsv/v1', '/transactions', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'handle_get_transactions'),
+			'permission_callback' => '__return_true'
 		));
 	}
 

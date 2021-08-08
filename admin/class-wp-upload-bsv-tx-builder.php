@@ -56,15 +56,14 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct() {
+	public function __construct( $plugin_name, $version ) {
 
 		$this->load_dependencies();
 
-		// $this->plugin_name = $plugin_name;
-		// $this->version = $version;
+		$this->plugin_name = $plugin_name;
+		$this->version = $version;
 
 		$this->db = new Wp_Upload_Bsv_DB;
-
 	}
 
 	private function load_dependencies() {
@@ -73,9 +72,37 @@ class Wp_Upload_Bsv_Tx_Builder {
 
 	function sample_admin_notice__error() {
     $class = 'notice notice-error';
-    $message = 'Irks! An error has occurred.';
+    $message = __( 'Irks! An error has occurred.', 'sample-text-domain' );
  
     printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
+	}
+
+	public function send_one($post_id, $post) {
+		$prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
+
+		$markdown = $this->markdown_from_id($post_id);
+
+		$data_to_send = array();
+
+		foreach ($prefixes as $prefix) {
+			// Build new tx data for each prefix
+			$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
+			// Link tx data to post id
+			$data_to_send[$post_id][] = $tx_data;
+		}
+
+		$response = $this->send_transaction($data_to_send);
+		
+		// If transaction was successful
+		if (!is_wp_error($response)) {
+			// Parse the txid data
+			$post_txids = json_decode($response['body'], true);
+			
+			// Create entries in transactions table
+			foreach ($post_txids[$post_id] as $i => $txid) {
+					$this->db->insert_tx($post_id, $txid, $prefixes[$i], current_time('mysql'));
+			}
+		}
 	}
 
 	public function send_many($postData) {
@@ -160,7 +187,6 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 * @return 		string 			$markdown			The post markdown
 	 */
 	private function markdown_from_post($post) {
-
 		$title = get_the_title($post);
 
 		$meta = array(

@@ -321,7 +321,7 @@ const AdminPanel = (props) => {
 
 	return (
 		<div>
-			<div class="notice notice-error is-dismissible"><p>Error!</p></div>
+			{/* <div class="notice notice-error is-dismissible"><p>Error!</p></div> */}
 			<TableContainer component={Paper}>
 				<Table className={classes.table} aria-label="simple table">
 					<TableHead>
