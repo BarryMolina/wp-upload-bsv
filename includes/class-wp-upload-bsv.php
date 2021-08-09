@@ -187,12 +187,14 @@ class Wp_Upload_Bsv {
 		// Settings page
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_settings, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
+		$this->loader->add_action( 'admin_init', $plugin_settings, 'initialize_plugin_settings' );
 
 		// API Controller endpoints
 		$this->loader->add_action( 'rest_api_init', $controller, 'register_endpoints' );
 
 		// Auto upload posts
-		$this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
+		$this->loader->add_action( 'transition_post_status', $plugin_admin, 'auto_upload_post', 10, 3 );
+		// $this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
 
 
 		// $this->loader->add_action( 'admin_init', $plugin_admin, 'tx_table_test' );

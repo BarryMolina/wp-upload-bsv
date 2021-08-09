@@ -23,6 +23,11 @@ class Wp_Upload_Bsv_DB {
 	 */
 	public const TX_TABLE = 'bsv_transactions';
 
+	// Settings API option names
+	public const AUTO_UPLOAD_GROUP = 'wpbsv-auto-upload';
+	public const UPLOAD_ON_PUBLISH = 'wpbsv-upload-on-publish';
+	public const UPLOAD_ON_UPDATE = 'wpbsv-upload-on-update';
+
 	/**
 	 * Initialize the class and set its properties.
 	 *

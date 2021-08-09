@@ -93,7 +93,11 @@ class Wp_Upload_Bsv_Admin {
 
 	}
 
-	function sample_admin_notice__error() {
+	public function auto_upload_post($new_status, $old_status, $post) {
+
+	}
+
+	public function sample_admin_notice__error() {
     $class = 'notice notice-error';
     $message = 'Irks! An error has occurred.';
  

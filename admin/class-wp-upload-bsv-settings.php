@@ -126,11 +126,11 @@ class Wp_Upload_Bsv_Settings {
 			'wpbsv_upload_settings',			// The unique ID - that is, the slug - for this menu item
 			array( $this, 'render_management_page_content')				// The name of the function to call when rendering this menu's page
 		);
-
 	}
-		/**
+
+	/**
 	 * Renders the contents of the settings page
-	 */
+	*/
 	public function render_management_page_content() {
 		// check user capabilities
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -139,10 +139,76 @@ class Wp_Upload_Bsv_Settings {
 		?>
 			<div class="wrap">
 				<h2>Mirror to BSV Settings</h2>
-				<div id="wpbsv-settings"></div>
+				<div id="wpbsv-settings">
+					<form action="options.php" method="post">
+						<?php
+							settings_fields($this->db::AUTO_UPLOAD_GROUP);
+							do_settings_sections($this->db::AUTO_UPLOAD_GROUP);
+							submit_button('Save');
+						?>
+					</form>
+				</div>
 			</div>
 		<?php
 	}
+
+	public function initialize_plugin_settings() {
+		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_PUBLISH);
+		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_UPDATE);
+
+		add_settings_section(
+			'upload_settings_section',
+			'Auto Upload Settings',
+			array($this, 'upload_section_callback'),
+			$this->db::AUTO_UPLOAD_GROUP
+		);
+
+		add_settings_field(
+			'upload_on_publish',
+			'Upload on Publish',
+			array($this, 'upload_on_publish_callback'),
+			$this->db::AUTO_UPLOAD_GROUP,
+			'upload_settings_section'
+		);
+
+		add_settings_field(
+			'upload_on_update',
+			'Upload on Update',
+			array($this, 'upload_on_update_callback'),
+			$this->db::AUTO_UPLOAD_GROUP,
+			'upload_settings_section'
+		);
+	}
+
+	/**
+	 * The callback for the auto upload settings section
+	 *
+	 * @return void
+	 */
+	public function upload_section_callback() {}
+
+	public function upload_on_publish_callback() {
+		?>
+			<input 
+				type="checkbox" 
+				name="<?php echo $this->db::UPLOAD_ON_PUBLISH; ?>" 
+				value="1" 
+				<?php checked(1, get_option($this->db::UPLOAD_ON_PUBLISH), true); ?>
+			/>
+		<?php
+	}
+
+	public function upload_on_update_callback() {
+		?>
+			<input 
+				type="checkbox" 
+				name="<?php echo $this->db::UPLOAD_ON_UPDATE; ?>" 
+				value="1" 
+				<?php checked(1, get_option($this->db::UPLOAD_ON_UPDATE), true); ?>
+			/>
+		<?php
+	}
+
 	/**
 	 * Undocumented function
 	 *
