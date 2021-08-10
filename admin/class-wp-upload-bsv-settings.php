@@ -139,7 +139,7 @@ class Wp_Upload_Bsv_Settings {
 		?>
 			<div class="wrap">
 				<h2>Mirror to BSV Settings</h2>
-				<div id="wpbsv-settings">
+				<div id="wpbsv-settings-page">
 					<form action="options.php" method="post">
 						<?php
 							settings_fields($this->db::AUTO_UPLOAD_GROUP);
@@ -158,7 +158,7 @@ class Wp_Upload_Bsv_Settings {
 
 		add_settings_section(
 			'upload_settings_section',
-			'Auto Upload Settings',
+			'Auto Upload',
 			array($this, 'upload_section_callback'),
 			$this->db::AUTO_UPLOAD_GROUP
 		);

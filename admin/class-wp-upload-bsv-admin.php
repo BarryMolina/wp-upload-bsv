@@ -51,6 +51,15 @@ class Wp_Upload_Bsv_Admin {
 	protected $db;
 
 	/**
+	 * The class responsible for building and sending transactions
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      Wp_Upload_Bsv_Tx_Builder    $tx_builder    build and sends transactions
+	 */
+	protected $tx_builder;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -64,14 +73,14 @@ class Wp_Upload_Bsv_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 		$this->db = new Wp_Upload_Bsv_DB;
-
+		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder;
 	}
 
 	private function load_dependencies() {
 		// Load html-to-markdown
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tx-builder.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
-
 	}
 
 	/**
@@ -93,9 +102,67 @@ class Wp_Upload_Bsv_Admin {
 
 	}
 
+	/**
+	 * Handle the auto-upload feature. Called whenever a post is created or updated
+	 *
+	 * @param String $new_status    The current post status
+	 * @param String $old_status		The previous post status
+	 * @param String $post					The post itself
+	 * @return void
+	 */
 	public function auto_upload_post($new_status, $old_status, $post) {
-
+		if ($this->should_upload($new_status, $old_status, $post->post_type)) {
+			// Upload post
+			$this->tx_builder->send_one($post->ID);
+		}
 	}
+
+	/**
+	 * Determine whether to upload post. 
+	 *
+	 * @param String 			$new_status    	The current post status
+	 * @param String 			$old_status			The previous post status
+	 * @param String 			$post_type			The post type
+	 * @return boolean										Whether the post should be uploaded
+	 */
+	private function should_upload($new_status, $old_status, $post_type) {
+		if ($post_type != 'post') return false;
+
+		$on_publish = get_option($this->db::UPLOAD_ON_PUBLISH) === '1';
+		$on_update = get_option($this->db::UPLOAD_ON_UPDATE) === '1';
+
+		$published = $new_status === 'publish';
+		$updated = $old_status === 'publish';
+
+		$only_on_publish = $on_publish && !$on_update;
+		$only_on_update = !$on_publish && $on_update;
+		$on_update_and_publish = $on_publish && $on_update;
+
+		if ($only_on_publish && $published && !$updated) return true;
+		if ($only_on_update && $published && $updated) return true;
+		if ($on_update_and_publish && $published) return true;
+
+		return false;
+	}
+
+	// 	if ($on_publish) {
+	// 		// On update and publish
+	// 		if ($on_update && $published) {
+	// 			return true;
+	// 		}
+	// 		// Only on publish
+	// 		else if ($published && !$updated) {
+	// 			return true;
+	// 		}
+	// 	}
+	// 	// Only on update
+	// 	else if ($on_update && $updated && $published) {
+	// 		return true;
+	// 	}
+
+	// 	// Don't upload on publish or update
+	// 	return false;
+	// }
 
 	public function sample_admin_notice__error() {
     $class = 'notice notice-error';

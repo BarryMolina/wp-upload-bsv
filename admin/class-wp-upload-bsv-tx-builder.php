@@ -56,12 +56,12 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct() {
 
 		$this->load_dependencies();
 
-		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+		// $this->plugin_name = $plugin_name;
+		// $this->version = $version;
 
 		$this->db = new Wp_Upload_Bsv_DB;
 	}
@@ -77,8 +77,9 @@ class Wp_Upload_Bsv_Tx_Builder {
     printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
 	}
 
-	public function send_one($post_id, $post) {
-		$prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
+	public function send_one($post_id) {
+		// $prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
+		$prefixes = array('gendale.net');
 
 		$markdown = $this->markdown_from_id($post_id);
 

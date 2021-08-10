@@ -101,7 +101,7 @@ const Row = ( props ) => {
 				</TableCell>
 				{transactions.length > 0 ? 
 				// Check that at least one transaction was made after the last modified date
-					transactions.some(tx => moment(tx.time).isAfter(post.modified)) ? 
+					transactions.some(tx => moment(tx.time).isSameOrAfter(post.modified)) ? 
 						<TableCell className={classes.green}>Mirrored</TableCell>
 					:
 						<TableCell className={classes.orange}>Modified</TableCell>

@@ -176,7 +176,7 @@ class Wp_Upload_Bsv {
 		$plugin_tools = new Wp_Upload_Bsv_Tools( $this->get_plugin_name(), $this->get_version() );
 		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
-		$tx_builder = new Wp_Upload_Bsv_Tx_Builder( $this->get_plugin_name(), $this->get_version() );
+		// $tx_builder = new Wp_Upload_Bsv_Tx_Builder;
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 

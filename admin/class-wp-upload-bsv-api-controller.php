@@ -73,7 +73,7 @@ class Wp_Upload_Bsv_API_Controller {
 		$this->version = $version;
 
 		$this->db = new Wp_Upload_Bsv_DB;
-		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder($this->plugin_name, $this->version);
+		$this->tx_builder = new Wp_Upload_Bsv_Tx_Builder;
 	}
 
 	private function load_dependencies() {
