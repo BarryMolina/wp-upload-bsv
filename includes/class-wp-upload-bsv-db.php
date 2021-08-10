@@ -27,6 +27,7 @@ class Wp_Upload_Bsv_DB {
 	public const AUTO_UPLOAD_GROUP = 'wpbsv-auto-upload';
 	public const UPLOAD_ON_PUBLISH = 'wpbsv-upload-on-publish';
 	public const UPLOAD_ON_UPDATE = 'wpbsv-upload-on-update';
+	public const DEFAULT_PREFIXES = 'wpbsv-default-prefixes';
 
 	/**
 	 * Initialize the class and set its properties.

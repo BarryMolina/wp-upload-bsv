@@ -196,14 +196,7 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'transition_post_status', $plugin_admin, 'auto_upload_post', 10, 3 );
 		// $this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
 
-
-		// $this->loader->add_action( 'admin_init', $plugin_admin, 'tx_table_test' );
-		// $this->loader->add_action( 'admin_init', $plugin_admin, 'markdown_test' );
 		// $this->loader->add_action( 'wp_ajax_wpbsv_send_transaction', $plugin_admin, 'send_transaction_handler' );
-
-		// $this->loader->add_action( 'publish_post', $plugin_admin, 'uploadPost');
-		// $this->loader->add_action( 'wp_print_scripts', $plugin_admin, 'se_inspect_scripts' );
-
 	}
 
 	/**

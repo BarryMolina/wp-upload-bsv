@@ -88,12 +88,14 @@ class Wp_Upload_Bsv_Settings {
 	 */
 	public function enqueue_scripts($hook) {
 
+		echo $hook;
 		// Only enqueue script on tools page
-		if ('tools_page_wpbsv_upload_settings' !== $hook) {
+		if ('settings_page_wpbsv_upload_settings' !== $hook) {
 			return;
 		}
 
 		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+			echo 'here';
 			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
 		}
 		// Production scripts
@@ -144,9 +146,11 @@ class Wp_Upload_Bsv_Settings {
 						<?php
 							settings_fields($this->db::AUTO_UPLOAD_GROUP);
 							do_settings_sections($this->db::AUTO_UPLOAD_GROUP);
+							// echo '<div id="wpbsv-default-prefixes"></div>';
 							submit_button('Save');
 						?>
 					</form>
+					<div id="wpbsv-prefix-container"></div>
 				</div>
 			</div>
 		<?php
@@ -155,6 +159,7 @@ class Wp_Upload_Bsv_Settings {
 	public function initialize_plugin_settings() {
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_PUBLISH);
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_UPDATE);
+		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::DEFAULT_PREFIXES);
 
 		add_settings_section(
 			'upload_settings_section',
@@ -165,7 +170,7 @@ class Wp_Upload_Bsv_Settings {
 
 		add_settings_field(
 			'upload_on_publish',
-			'Upload on Publish',
+			'On Publish',
 			array($this, 'upload_on_publish_callback'),
 			$this->db::AUTO_UPLOAD_GROUP,
 			'upload_settings_section'
@@ -173,10 +178,19 @@ class Wp_Upload_Bsv_Settings {
 
 		add_settings_field(
 			'upload_on_update',
-			'Upload on Update',
+			'On Update',
 			array($this, 'upload_on_update_callback'),
 			$this->db::AUTO_UPLOAD_GROUP,
 			'upload_settings_section'
+		);
+
+		add_settings_field(
+			'default_prefixes',
+			'Default Prefixes',
+			array($this, 'default_prefixes_callback'),
+			$this->db::AUTO_UPLOAD_GROUP,
+			'upload_settings_section',
+			// array('class' => 'hidden')
 		);
 	}
 
@@ -209,12 +223,14 @@ class Wp_Upload_Bsv_Settings {
 		<?php
 	}
 
-	/**
-	 * Undocumented function
-	 *
-	 * @return void
-	 */
-	public function onPublishPost() {
-		echo 'post published';
+	public function default_prefixes_callback() {
+		?>
+			<input
+				id="wpbsv-default-prefixes"
+				type="text"
+				name="<?php echo $this->db::DEFAULT_PREFIXES; ?>"
+				value="<?php echo get_option($this->db::DEFAULT_PREFIXES); ?>"
+			/>
+		<?php
 	}
 }
