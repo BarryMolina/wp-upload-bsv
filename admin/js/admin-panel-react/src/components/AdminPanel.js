@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import styled from 'styled-components'
 import MoneyButton from '@moneybutton/react-money-button'
-import {  makeStyles } from '@material-ui/core/styles';
+import {  makeStyles, styled } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -38,17 +37,15 @@ const useStyles = makeStyles({
 			borderBottom: 'none',
 		}
   },
-	button: {
-    '& > *': {
-      // margin: theme.spacing(1),
-    },
-  },
 	buttons: {
 		display: 'flex',
 		alignItems: 'center',
 		'& > :not(:first-child)': {
 			marginLeft: '.5rem',
 		},
+		'& button': {
+			textTransform: 'none'
+		}
 		// '& > '
 	},
 	row: {
@@ -69,9 +66,9 @@ const useStyles = makeStyles({
 	},
 });
 
-const Prefixes = styled.div`
-	padding: 1rem 0;
-`
+const Prefixes = styled('div')({
+	padding: '1rem 0',
+})
 
 const Row = ( props ) => {
 	const { 

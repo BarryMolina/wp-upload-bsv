@@ -87,8 +87,6 @@ class Wp_Upload_Bsv_Settings {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts($hook) {
-
-		echo $hook;
 		// Only enqueue script on tools page
 		if ('settings_page_wpbsv_upload_settings' !== $hook) {
 			return;
@@ -142,15 +140,15 @@ class Wp_Upload_Bsv_Settings {
 			<div class="wrap">
 				<h2>Mirror to BSV Settings</h2>
 				<div id="wpbsv-settings-page">
-					<form action="options.php" method="post">
+					<form action="options.php" method="post" id="wpbsv-settings-form">
 						<?php
 							settings_fields($this->db::AUTO_UPLOAD_GROUP);
 							do_settings_sections($this->db::AUTO_UPLOAD_GROUP);
-							// echo '<div id="wpbsv-default-prefixes"></div>';
-							submit_button('Save');
+							echo '<div id="wpbsv-prefix-container"></div>';
+							// submit_button('Save Settings');
 						?>
 					</form>
-					<div id="wpbsv-prefix-container"></div>
+					<!-- <div id="wpbsv-prefix-container"></div> -->
 				</div>
 			</div>
 		<?php
