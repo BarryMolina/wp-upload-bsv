@@ -78,7 +78,9 @@ class Wp_Upload_Bsv_Tx_Builder {
 	}
 
 	public function send_one($post_id) {
-		$prefixes = get_option($this->db::DEFAULT_PREFIXES);
+		$prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
+		// $prefixes = array('gendale.net');
+		// $prefixes = get_option($this->db::DEFAULT_PREFIXES);
 
 		$markdown = $this->markdown_from_id($post_id);
 
@@ -129,6 +131,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 		// Send transaction
 		$response = $this->send_transaction($data_to_send);
 
+
 		// If transaction was successful
 		if (!is_wp_error($response)) {
 			// Parse the txid data
@@ -162,7 +165,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 		array_filter($data);
 
 		// Check that data exists
-		if (empty(data)) {
+		if (empty($data)) {
 			return new WP_Error('empty', 'Transaction contains no data');
 		}
 

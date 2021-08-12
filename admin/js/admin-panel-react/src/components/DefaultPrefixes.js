@@ -50,7 +50,6 @@ const DefaultPrefixes = ( props ) => {
 	// const createPrefixString
 
 	const handleSaveClick = () => {
-		console.log(prefixTextValues)
 		let config = new FormData
 		config.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
 		config.append('action', 'wpbsv_default_prefixes')
@@ -58,12 +57,12 @@ const DefaultPrefixes = ( props ) => {
 
 		axios.post(ajaxurl, config)
 			.then( res => {
-				console.log(res)
+				// console.log(res)
 			})
 			.catch( err => {
 				console.log(err)
 			})
-		// document.getElementById('wpbsv-settings-form').submit()
+		document.getElementById('wpbsv-settings-form').submit()
 	}
 
 	const classes = useStyles()
