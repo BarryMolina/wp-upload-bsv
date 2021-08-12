@@ -27,6 +27,7 @@ import { green } from '@material-ui/core/colors';
 
 // const wpURL = 'http://localhost:8888/wordpress/wp-json'
 // With trailing slash
+console.log('running')
 const wpURL = wpbsv_ajax_obj.urls.api
 const useStyles = makeStyles({
   table: {
@@ -175,7 +176,6 @@ const AdminPanel = (props) => {
 	const [loading, setLoading] = useState(false)
 
 	useEffect( () => {
-		// console.log("running")
 		axios.get(wpURL + 'wp/v2/posts')
 			.then( res => {
 				// console.log(res)

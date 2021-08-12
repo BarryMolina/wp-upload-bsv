@@ -104,11 +104,13 @@ class Wp_Upload_Bsv_Settings {
       'wpbsv-admin-panel-react',
       'wpbsv_ajax_obj', 
       array(
-        'nonce' => wp_create_nonce('wp_rest'),
-				'urls' => array(
-					// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
-					'api' => get_rest_url(),
-				),
+        'nonce' => wp_create_nonce('wpbsv-nonce'),
+				'prefixes' => get_option($this->db::DEFAULT_PREFIXES)
+				// 'urls' => array(
+				// 	// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
+				// 	'api' => get_rest_url(),
+				// ),
+				
       )
     );
 	}
@@ -155,9 +157,11 @@ class Wp_Upload_Bsv_Settings {
 	}
 
 	public function initialize_plugin_settings() {
+		// update_option($this->db::DEFAULT_PREFIXES, array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'someotherprefix', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU'));
+
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_PUBLISH);
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_UPDATE);
-		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::DEFAULT_PREFIXES);
+		// register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::DEFAULT_PREFIXES);
 
 		add_settings_section(
 			'upload_settings_section',
@@ -182,14 +186,14 @@ class Wp_Upload_Bsv_Settings {
 			'upload_settings_section'
 		);
 
-		add_settings_field(
-			'default_prefixes',
-			'Default Prefixes',
-			array($this, 'default_prefixes_callback'),
-			$this->db::AUTO_UPLOAD_GROUP,
-			'upload_settings_section',
-			// array('class' => 'hidden')
-		);
+		// add_settings_field(
+		// 	'default_prefixes',
+		// 	'Default Prefixes',
+		// 	array($this, 'default_prefixes_callback'),
+		// 	$this->db::AUTO_UPLOAD_GROUP,
+		// 	'upload_settings_section',
+		// 	// array('class' => 'hidden')
+		// );
 	}
 
 	/**
@@ -230,5 +234,16 @@ class Wp_Upload_Bsv_Settings {
 				value="<?php echo get_option($this->db::DEFAULT_PREFIXES); ?>"
 			/>
 		<?php
+	}
+
+	public function save_default_prefixes() {
+		check_ajax_referer('wpbsv-nonce');
+
+		// Have to remove extra slashes added by wp
+		$prefixes = json_decode(wp_unslash($_POST['prefixes']));
+		update_option($this->db::DEFAULT_PREFIXES, $prefixes);
+
+		wp_send_json('success');
+
 	}
 }

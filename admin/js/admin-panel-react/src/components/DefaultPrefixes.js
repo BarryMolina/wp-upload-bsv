@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { makeStyles, styled } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 
@@ -31,25 +32,45 @@ const WpButton = styled(Button)({
 
 const DefaultPrefixes = ( props ) => {
 	const {
-			protocols,
-			prefixTextValues,
-			prefixSelectValues,
-			prefixSelectHandler,
-			prefixTextHandler,
-			addPrefixHandler,
-			deletePrefixHandler
+		protocols,
+		prefixTextValues,
+		prefixSelectValues,
+		prefixSelectHandler,
+		prefixTextHandler,
+		addPrefixHandler,
+		addManyPrefix,
+		deletePrefixHandler
 	} = props
 
 	const [prefixString, setPrefixString] = useState('')
 	
+	useEffect( () => {
+		addManyPrefix(wpbsv_ajax_obj.prefixes)
+	}, [])
 	// const createPrefixString
 
 	const handleSaveClick = () => {
-		document.getElementById('wpbsv-settings-form').submit()
+		console.log(prefixTextValues)
+		let config = new FormData
+		config.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
+		config.append('action', 'wpbsv_default_prefixes')
+		config.append('prefixes', JSON.stringify(prefixTextValues))
+
+		axios.post(ajaxurl, config)
+			.then( res => {
+				console.log(res)
+			})
+			.catch( err => {
+				console.log(err)
+			})
+		// document.getElementById('wpbsv-settings-form').submit()
 	}
 
-	const classes = useStyles();
+	const classes = useStyles()
 
+	// console.log(prefixTextValues)
+	// console.log(ajaxurl)
+	// console.log(wpbsv_ajax_obj)
 	return (
 		<>
 			<Prefixes>

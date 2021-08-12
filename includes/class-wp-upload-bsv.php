@@ -188,6 +188,7 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_settings, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
 		$this->loader->add_action( 'admin_init', $plugin_settings, 'initialize_plugin_settings' );
+		$this->loader->add_action( 'wp_ajax_wpbsv_default_prefixes', $plugin_settings, 'save_default_prefixes');
 
 		// API Controller endpoints
 		$this->loader->add_action( 'rest_api_init', $controller, 'register_endpoints' );

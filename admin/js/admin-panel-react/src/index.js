@@ -1,11 +1,27 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { render } from 'react-dom'
 
-import AdminPanel from './components/AdminPanel'
-import DefaultPrefixes from './components/DefaultPrefixes'
+// import AdminPanel from './components/AdminPanel'
+// import DefaultPrefixes from './components/DefaultPrefixes'
 
-const adminPanel = document.getElementById('wpbsv-admin-panel')
-const defaultPrefixes = document.getElementById('wpbsv-prefix-container')
+const adminPanelContainer = document.getElementById('wpbsv-admin-panel')
+const defaultPrefixesContainer = document.getElementById('wpbsv-prefix-container')
 
-if (adminPanel) render(<AdminPanel />, adminPanel)
-if (defaultPrefixes) render(<DefaultPrefixes />, defaultPrefixes)
+const App = (props) => {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			{props.children}
+		</Suspense>
+	)
+}
+
+// Dynamically render components to avoid loading unused modules
+const DefaultPrefixes = React.lazy(() => import('./components/DefaultPrefixes'))
+const AdminPanel = React.lazy(() => import('./components/AdminPanel'))
+
+if (defaultPrefixesContainer) {
+	render(<App><DefaultPrefixes/></App>, defaultPrefixesContainer)
+}
+else if (adminPanelContainer) {
+	render(<App><AdminPanel/></App>, defaultPrefixesContainer)
+}

@@ -6,10 +6,10 @@ const protocolList = [
 ]
 
 // Define protocol list map 
-const protocols = new Map(protocolList)
+const protocolMap = new Map(protocolList)
 
 // Reverse map it as well
-const prefixes = new Map(
+const prefixMap = new Map(
 	protocolList.map(x => [x[1], x[0]])
 )
 
@@ -36,8 +36,9 @@ const withPrefixes = (Component) => (props) => {
 	const prefixSelectHandler = (protocol, i) => {
 		setPrefixSelect(protocol, i)
 
-		if (protocols.has(protocol)) {
-			setPrefixText(protocols.get(protocol), i)
+		// Set prefix text based on protocol selected
+		if (protocolMap.has(protocol)) {
+			setPrefixText(protocolMap.get(protocol), i)
 		}
 		else {
 			setPrefixText('', i)
@@ -48,17 +49,19 @@ const withPrefixes = (Component) => (props) => {
 	const prefixTextHandler = (prefix, i) => {
 		setPrefixText(prefix, i)
 
-		// Keep protocol select option and prefix text values synced
-		if (protocols.has(prefixSelectValues[i])) {
-			if (protocols.get(prefixSelectValues[i]) !== prefix) {
+		// Reset prefix select input if text no longer matches protocol
+		if (protocolMap.has(prefixSelectValues[i])) {
+			if (protocolMap.get(prefixSelectValues[i]) !== prefix) {
 				setPrefixSelect('Custom', i)
 			}
 		}
-		if (prefixes.has(prefix)) {
-			setPrefixSelect(prefixes.get(prefix), i)
+		// Change protocol select option based on prefix text
+		if (prefixMap.has(prefix)) {
+			setPrefixSelect(prefixMap.get(prefix), i)
 		}
 	}
 
+	// Add a new prefix
 	const addPrefixHandler = () => {
 		let selectValues = prefixSelectValues.slice()
 		let textValues = prefixTextValues.slice()
@@ -67,6 +70,17 @@ const withPrefixes = (Component) => (props) => {
 
 		setPrefixSelectValues(selectValues)
 		setPrefixTextValues(textValues)
+	}
+
+	// Add many prefixes at once
+	const addManyPrefix = prefixes => {
+		setPrefixTextValues(prefixes)
+		setPrefixSelectValues(prefixes.map(prefix => {
+			if (prefixMap.has(prefix)) {
+				return prefixMap.get(prefix)
+			}
+			return 'Custom'
+		}))
 	}
 
 	// Remove prefix
@@ -82,12 +96,13 @@ const withPrefixes = (Component) => (props) => {
 
 	return (
 		<Component
-			protocols={protocols}
+			protocols={protocolMap}
 			prefixTextValues={prefixTextValues}
 			prefixSelectValues={prefixSelectValues}
 			prefixSelectHandler={prefixSelectHandler}
 			prefixTextHandler={prefixTextHandler}
 			addPrefixHandler={addPrefixHandler}
+			addManyPrefix={addManyPrefix}
 			deletePrefixHandler={deletePrefixHandler}
 			{ ...props }
 		/>
