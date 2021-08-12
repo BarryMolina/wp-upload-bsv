@@ -23,6 +23,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import moment from 'moment';
 
 import TxOptions from './TxOptions';
+import withPrefixes from './withPrefixes'
 import { green } from '@material-ui/core/colors';
 
 // const wpURL = 'http://localhost:8888/wordpress/wp-json'
@@ -157,6 +158,7 @@ const Row = ( props ) => {
 
 const AdminPanel = (props) => {
 	const {
+		// Selection props
     areAllIndeterminate,
     areAllSelected,
     areAnySelected,
@@ -166,13 +168,20 @@ const AdminPanel = (props) => {
     handleSelectAll,
     isItemSelected,
 		selections,
+		// Prefix props
+		protocols,
+		prefixTextValues,
+		prefixSelectValues,
+		prefixSelectHandler,
+		prefixTextHandler,
+		addPrefixHandler,
+		// addManyPrefix,
+		deletePrefixHandler
   } = props;
 
 	const [posts, setPosts] = useState([])
 	const [transactions, setTransactions] = useState([])
 	const [expanded, setExpanded] = useState([])
-	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
-	const [prefixTextValues, setPrefixTextValues] = useState([''])
 	const [loading, setLoading] = useState(false)
 
 	useEffect( () => {
@@ -282,40 +291,6 @@ const AdminPanel = (props) => {
 		}
 	}
 
-	const prefixSelectHandler = (newValue, i) => {
-		let values = prefixSelectValues.slice()
-		values[i] = newValue
-		setPrefixSelectValues(values)
-	}
-
-	const prefixTextHandler = (newValue, i) => {
-		let values = prefixTextValues.slice()
-		values[i] = newValue
-		setPrefixTextValues(values)
-	}
-
-	const addPrefixHandler = () => {
-		let selectValues = prefixSelectValues.slice()
-		let textValues = prefixTextValues.slice()
-		selectValues.push('Custom')
-		textValues.push('')
-
-		setPrefixSelectValues(selectValues)
-		setPrefixTextValues(textValues)
-	}
-
-	// Remove prefix
-	const deletePrefixHandler = prefixIdx => {
-		let selectValues = prefixSelectValues.slice()
-		let textValues = prefixTextValues.slice()
-		selectValues.splice(prefixIdx, 1)
-		textValues.splice(prefixIdx, 1)
-
-		setPrefixSelectValues(selectValues)
-		setPrefixTextValues(textValues)
-
-	}
-
 	return (
 		<div>
 			{/* <div class="notice notice-error is-dismissible"><p>Error!</p></div> */}
@@ -364,6 +339,7 @@ const AdminPanel = (props) => {
 					<TxOptions
 						key={i}
 						optionsIndex={i}
+						protocols={protocols}
 						prefixTextValue={prefixTextValues[i]}
 						prefixSelectValue={prefixSelectValues[i]}
 						setPrefixSelect={prefixSelectHandler}
@@ -386,4 +362,4 @@ const AdminPanel = (props) => {
 	)
 }
 
-export default withSelections(AdminPanel)
+export default withPrefixes(withSelections(AdminPanel))

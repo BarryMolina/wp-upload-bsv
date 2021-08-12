@@ -19,9 +19,9 @@ const App = (props) => {
 const DefaultPrefixes = React.lazy(() => import('./components/DefaultPrefixes'))
 const AdminPanel = React.lazy(() => import('./components/AdminPanel'))
 
-if (defaultPrefixesContainer) {
-	render(<App><DefaultPrefixes/></App>, defaultPrefixesContainer)
+if (adminPanelContainer) {
+	render(<App><AdminPanel/></App>, adminPanelContainer)
 }
-else if (adminPanelContainer) {
-	render(<App><AdminPanel/></App>, defaultPrefixesContainer)
+else if (defaultPrefixesContainer) {
+	render(<App><DefaultPrefixes/></App>, defaultPrefixesContainer)
 }

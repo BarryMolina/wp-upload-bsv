@@ -78,8 +78,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	}
 
 	public function send_one($post_id) {
-		// $prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
-		$prefixes = array('gendale.net');
+		$prefixes = get_option($this->db::DEFAULT_PREFIXES);
 
 		$markdown = $this->markdown_from_id($post_id);
 

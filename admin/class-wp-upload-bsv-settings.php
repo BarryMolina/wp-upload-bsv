@@ -243,7 +243,7 @@ class Wp_Upload_Bsv_Settings {
 		$prefixes = json_decode(wp_unslash($_POST['prefixes']));
 		update_option($this->db::DEFAULT_PREFIXES, $prefixes);
 
-		wp_send_json('success');
+		wp_send_json('true');
 
 	}
 }
