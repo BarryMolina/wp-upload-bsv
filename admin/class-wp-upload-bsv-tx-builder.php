@@ -90,8 +90,10 @@ class Wp_Upload_Bsv_Tx_Builder {
 		foreach ($prefixes as $prefix) {
 			// Build new tx data for each prefix
 			$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
-			// Link tx data to post id
-			$data_to_send[$post_id][] = $tx_data;
+			if (!is_wp_error($tx_data)) {
+				// Link tx data to post
+				$data_to_send[$post_id][] = $tx_data;
+			}
 		}
 
 		$response = $this->send_transaction($data_to_send);
@@ -125,8 +127,10 @@ class Wp_Upload_Bsv_Tx_Builder {
 				// Build data for each transaction
 				$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
 
-				// Link tx data to post
-				$data_to_send[$post_id][] = $tx_data;
+				if (!is_wp_error($tx_data)) {
+					// Link tx data to post
+					$data_to_send[$post_id][] = $tx_data;
+				}
 			}
 		}
 		// Send transaction

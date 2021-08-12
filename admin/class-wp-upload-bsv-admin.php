@@ -79,7 +79,6 @@ class Wp_Upload_Bsv_Admin {
 	private function load_dependencies() {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tx-builder.php';
-		// require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 	}
 
 	/**
