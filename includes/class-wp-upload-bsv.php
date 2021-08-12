@@ -176,7 +176,6 @@ class Wp_Upload_Bsv {
 		$plugin_tools = new Wp_Upload_Bsv_Tools( $this->get_plugin_name(), $this->get_version() );
 		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
-		// $tx_builder = new Wp_Upload_Bsv_Tx_Builder;
 
 		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 
@@ -195,9 +194,6 @@ class Wp_Upload_Bsv {
 
 		// Auto upload posts
 		$this->loader->add_action( 'transition_post_status', $plugin_admin, 'auto_upload_post', 10, 3 );
-		// $this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
-
-		// $this->loader->add_action( 'wp_ajax_wpbsv_send_transaction', $plugin_admin, 'send_transaction_handler' );
 	}
 
 	/**

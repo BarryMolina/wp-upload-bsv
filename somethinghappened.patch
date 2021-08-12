@@ -1,0 +1,1035 @@
+diff --git a/admin/class-wp-upload-bsv-admin.php b/admin/class-wp-upload-bsv-admin.php
+index e1917f5..02420f7 100644
+--- a/admin/class-wp-upload-bsv-admin.php
++++ b/admin/class-wp-upload-bsv-admin.php
+@@ -77,10 +77,9 @@ class Wp_Upload_Bsv_Admin {
+ 	}
+ 
+ 	private function load_dependencies() {
+-		// Load html-to-markdown
+ 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
+ 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-upload-bsv-tx-builder.php';
+-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
++		// require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+ 	}
+ 
+ 	/**
+@@ -145,304 +144,10 @@ class Wp_Upload_Bsv_Admin {
+ 		return false;
+ 	}
+ 
+-	// 	if ($on_publish) {
+-	// 		// On update and publish
+-	// 		if ($on_update && $published) {
+-	// 			return true;
+-	// 		}
+-	// 		// Only on publish
+-	// 		else if ($published && !$updated) {
+-	// 			return true;
+-	// 		}
+-	// 	}
+-	// 	// Only on update
+-	// 	else if ($on_update && $updated && $published) {
+-	// 		return true;
+-	// 	}
+-
+-	// 	// Don't upload on publish or update
+-	// 	return false;
+-	// }
+-
+ 	public function sample_admin_notice__error() {
+     $class = 'notice notice-error';
+     $message = 'Irks! An error has occurred.';
+  
+     printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
+ 	}
+-	/**
+-	 * Sends data off to api for upload to bsv
+-	 *
+-	 * @param 				array 				$data					An associative array of post ids and the data to send
+-	 * @return 	array|WP_Error 			$out 					The response or WP_Error on failure
+-	 */
+-	public function send_transaction($data) {
+-
+-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+-			'method'      => 'POST',
+-			'timeout'			=> 120,
+-			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
+-			'body'        => json_encode(['data' => $data]),
+-			'data_format' => 'body',
+-		));
+-
+-    $code = wp_remote_retrieve_response_code($response);
+-
+-    // Check if bad request
+-    if ($code < 200 || $code >= 400) {
+-      $body = wp_remote_retrieve_body($response);
+-      $out = new WP_Error($code ,$body);
+-    }
+-    else {
+-      $out = $response;
+-    }
+-		return $out;
+-	}
+-
+-	/**
+-	 * Endpoint to receive post data from admin panel
+-	 * Parse JSON params and send transactions
+-	 *
+-	 * @param 		array 			$request  		POST request containing post data
+-	 * @return 		bool											true if successful, else false 			
+-	 */
+-	public function bsv_api_proxy($request) {
+-		// The JSON object sent from admin panel
+-		// Get the parsed JSON request body as array
+-		$postData = $request->get_json_params();
+-
+-		if (empty($postData['postIds'])) {
+-			return false;
+-		}
+-
+-		$data_to_send = array();
+-
+-		foreach ($postData['postIds'] as $post_id) {
+-			$markdown = $this->markdown_from_id($post_id);
+-
+-			// Initialize array for this post
+-			$data_to_send[$post_id] = array();
+-			
+-			foreach ($postData['prefixes'] as $prefix) {
+-				// Build data for each transaction
+-				$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
+-
+-				// Link tx data to post
+-				$data_to_send[$post_id][] = $tx_data;
+-
+-
+-				// If transaction was successful
+-				// if (!is_wp_error($response)) {
+-				// 	$hash = json_decode($response['body'], true)['hash'];
+-
+-				// 	$tx_info = $this->db->insert_tx($post_id, $hash, $prefix, current_time('mysql'));
+-
+-				// 	// Link transaction info to post
+-				// 	$data_to_send[$post_id][] = $tx_info;
+-				// }
+-				// else {
+-				// 	echo "ERROR!";
+-				// }
+-			}
+-		}
+-		// Send transaction
+-		$response = $this->send_transaction($data_to_send);
+-
+-		// If transaction was successful
+-		if (!is_wp_error($response)) {
+-			// Parse the txid data
+-			$post_txids = json_decode($response['body'], true);
+-			
+-			$post_tx_records = array();
+-			// Create entries in transactions table
+-			foreach ($post_txids as $post_id => $txids) {
+-				for ($i = 0; $i < count($txids); $i++) {
+-					$tx_info = $this->db->insert_tx($post_id, $txids[$i], $postData['prefixes'][$i], current_time('mysql'));
+-					$post_tx_records[] = $tx_info;
+-				}
+-			}
+-			return $post_tx_records;
+-		}
+-		// return $data_to_send;
+-		// Automatically converts array to JSON
+-		return false;
+-	}
+-
+-	public function handle_get_transactions($data) {
+-		global $wpdb;
+-		$tx_table_name = $this->db->get_tx_table();
+-		
+-		$query = "SELECT * FROM $tx_table_name";
+-		$transactions = $wpdb->get_results($query);
+-		return $transactions;
+-	}
+-
+-	/**
+-	 * Build BSV transaction data
+-	 *
+-	 * @param 	string 							$content			The data to send
+-	 * @param 	string 							$prefix				Optional prefix
+-	 * @param 	string 							$file_type		Optional file type
+-	 * @param 	string 							$encoding			Optional encoding
+-	 * @return 	array															The transaction data
+-	 */
+-	private function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
+-		$data = array($prefix, $content, $file_type, $encoding);
+-		// Remove falsy elements
+-		array_filter($data);
+-
+-		// Check that data exists
+-		if (empty(data)) {
+-			return new WP_Error('empty', 'Transaction contains no data');
+-		}
+-
+-		return $data;
+-	}
+-
+-
+-	public function parse_tx_response($res) {
+-
+-	}
+-
+-	// 
+-	/**
+-	 * Register the transaction endpoint
+-	 *
+-	 * @return void
+-	 */
+-	public function register_bsv_api() {
+-		register_rest_route('wpbsv-upload-bsv/v1', '/transaction', array(
+-			// POST request
+-			'methods' => WP_REST_Server::CREATABLE,
+-			'callback' => array($this, 'bsv_api_proxy'),
+-			// Validation callback
+-			// 'args' => array(
+-			// 	'posts' => array(
+-			// 		'validate_callback' => function($posts) {
+-			// 			return !empty($posts);
+-			// 		}
+-			// 	),
+-			// ),
+-			// Authorization
+-			// 'permission_callback' => function() {
+-			// 	return current_user_can( 'publish_posts' );
+-			// }
+-			'permission_callback' => '__return_true'
+-		));
+-		register_rest_route('wpbsv-upload-bsv/v1', '/transactions', array(
+-			'methods' => 'GET',
+-			'callback' => array($this, 'handle_get_transactions'),
+-		));
+-	}
+-	public function markdown_test() {
+-
+-		$markdown = $this->markdown_from_id(55);
+-
+-		// POST markdown to api
+-		$response = wp_remote_post ('http://localhost:9999/', array(
+-			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
+-			'body'        => json_encode(['data' => $markdown]),
+-			'method'      => 'POST',
+-			'data_format' => 'body',
+-		));
+-		if ( is_wp_error( $response ) ) {
+-			$error_message = $response->get_error_message();
+-			echo "Something went wrong: $error_message";
+-		} else {
+-			echo 'Response:<pre>';
+-			print_r( $response['body'] );
+-			echo '</pre>';
+-		}
+-	}
+-
+-	public function tx_table_test() {
+-		echo $this->db->get_tx_table();
+-
+-	}
+-
+-	/**
+-	 * Retrieve post by id and convert to markdown
+-	 *
+-	 * @param 		int 		$post_id			The id of the post
+-	 * @return 		string								The post markdown
+-	 */
+-	public function markdown_from_id($post_id) {
+-		$post = get_post($post_id, OBJECT, 'display');
+-		return $this->markdown_from_post($post);
+-	}
+-
+-	/**
+-	 * Create markdown from post object
+-	 *
+-	 * @param 		WP_Post 		$post					The post to convert
+-	 * @return 		string 			$markdown			The post markdown
+-	 */
+-	private function markdown_from_post($post) {
+-
+-		$title = get_the_title($post);
+-
+-		$meta = array(
+-			'title' 				=> $title,
+-			'author' 				=> get_the_author_meta('display_name', $post->post_author),
+-			'slug' 					=> $post->post_name,
+-			'published_gmt' => $post->post_date_gmt,
+-			'modified_gmt' 	=> $post->post_modified_gmt,
+-			'tx_date_gmt' 	=> gmdate('Y-m-d H:i:s'),
+-		);
+-
+-		// Build frontmatter
+-		$frontmatter = '<!--';
+-		foreach ($meta as $key => $value) {
+-			$frontmatter .= "\n$key: \"$value\"";
+-		}
+-		$frontmatter .= "\n-->\n\n";
+-
+-		// Set converter options
+-		$converter_options = array(
+-			'strip_tags' => true,
+-		);
+-		// Instantiate converter
+-		$converter = new League\HTMLToMarkdown\HtmlConverter($converter_options);
+-
+-		// Title markdown
+-		$title_md = "# $title\n\n";
+-
+-		// Content to markdown
+-		$content = apply_filters('the_content', $post->post_content);
+-		$markdown = $converter->convert($content);
+-
+-		return $frontmatter . $title_md . $markdown;
+-	}
+-
+-	/**
+-	 * Retrieve JSON post data from WP rest API
+-	 *
+-	 * @param 	int 			$post_id 				The post id
+-	 * @return 	string 		$post						The JSON post data
+-	 */
+-	private function get_post_json($post_id) {
+-		$response = wp_remote_get(rest_url("wp/v2/posts/$post_id"));
+-    $code = wp_remote_retrieve_response_code($response);
+-
+-    // Check if bad request
+-    if ($code < 200 || $code >= 400) {
+-      $body = wp_remote_retrieve_body($response);
+-      $out = new WP_Error($code ,$body);
+-    }
+-    else {
+-      $out = $response;
+-    }
+-
+-		if (is_wp_error($out)) {
+-      return false;
+-    }
+-
+-		// Parse post data into associative array
+-    // $post = json_decode($out['body'], true);
+-
+-		// Get body
+-    $post = $out['body'];
+-
+-    return $post;
+-	}
+ }
+diff --git a/admin/class-wp-upload-bsv-settings.php b/admin/class-wp-upload-bsv-settings.php
+index dc9ba15..1fb66af 100644
+--- a/admin/class-wp-upload-bsv-settings.php
++++ b/admin/class-wp-upload-bsv-settings.php
+@@ -87,13 +87,13 @@ class Wp_Upload_Bsv_Settings {
+ 	 * @since    1.0.0
+ 	 */
+ 	public function enqueue_scripts($hook) {
+-
+ 		// Only enqueue script on tools page
+-		if ('tools_page_wpbsv_upload_settings' !== $hook) {
++		if ('settings_page_wpbsv_upload_settings' !== $hook) {
+ 			return;
+ 		}
+ 
+ 		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
++			echo 'here';
+ 			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
+ 		}
+ 		// Production scripts
+@@ -104,11 +104,13 @@ class Wp_Upload_Bsv_Settings {
+       'wpbsv-admin-panel-react',
+       'wpbsv_ajax_obj', 
+       array(
+-        'nonce' => wp_create_nonce('wp_rest'),
+-				'urls' => array(
+-					// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
+-					'api' => get_rest_url(),
+-				),
++        'nonce' => wp_create_nonce('wpbsv-nonce'),
++				'prefixes' => get_option($this->db::DEFAULT_PREFIXES)
++				// 'urls' => array(
++				// 	// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
++				// 	'api' => get_rest_url(),
++				// ),
++				
+       )
+     );
+ 	}
+@@ -140,21 +142,26 @@ class Wp_Upload_Bsv_Settings {
+ 			<div class="wrap">
+ 				<h2>Mirror to BSV Settings</h2>
+ 				<div id="wpbsv-settings-page">
+-					<form action="options.php" method="post">
++					<form action="options.php" method="post" id="wpbsv-settings-form">
+ 						<?php
+ 							settings_fields($this->db::AUTO_UPLOAD_GROUP);
+ 							do_settings_sections($this->db::AUTO_UPLOAD_GROUP);
+-							submit_button('Save');
++							echo '<div id="wpbsv-prefix-container"></div>';
++							// submit_button('Save Settings');
+ 						?>
+ 					</form>
++					<!-- <div id="wpbsv-prefix-container"></div> -->
+ 				</div>
+ 			</div>
+ 		<?php
+ 	}
+ 
+ 	public function initialize_plugin_settings() {
++		// update_option($this->db::DEFAULT_PREFIXES, array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'someotherprefix', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU'));
++
+ 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_PUBLISH);
+ 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_UPDATE);
++		// register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::DEFAULT_PREFIXES);
+ 
+ 		add_settings_section(
+ 			'upload_settings_section',
+@@ -165,7 +172,7 @@ class Wp_Upload_Bsv_Settings {
+ 
+ 		add_settings_field(
+ 			'upload_on_publish',
+-			'Upload on Publish',
++			'On Publish',
+ 			array($this, 'upload_on_publish_callback'),
+ 			$this->db::AUTO_UPLOAD_GROUP,
+ 			'upload_settings_section'
+@@ -173,11 +180,20 @@ class Wp_Upload_Bsv_Settings {
+ 
+ 		add_settings_field(
+ 			'upload_on_update',
+-			'Upload on Update',
++			'On Update',
+ 			array($this, 'upload_on_update_callback'),
+ 			$this->db::AUTO_UPLOAD_GROUP,
+ 			'upload_settings_section'
+ 		);
++
++		// add_settings_field(
++		// 	'default_prefixes',
++		// 	'Default Prefixes',
++		// 	array($this, 'default_prefixes_callback'),
++		// 	$this->db::AUTO_UPLOAD_GROUP,
++		// 	'upload_settings_section',
++		// 	// array('class' => 'hidden')
++		// );
+ 	}
+ 
+ 	/**
+@@ -209,12 +225,25 @@ class Wp_Upload_Bsv_Settings {
+ 		<?php
+ 	}
+ 
+-	/**
+-	 * Undocumented function
+-	 *
+-	 * @return void
+-	 */
+-	public function onPublishPost() {
+-		echo 'post published';
++	public function default_prefixes_callback() {
++		?>
++			<input
++				id="wpbsv-default-prefixes"
++				type="text"
++				name="<?php echo $this->db::DEFAULT_PREFIXES; ?>"
++				value="<?php echo get_option($this->db::DEFAULT_PREFIXES); ?>"
++			/>
++		<?php
++	}
++
++	public function save_default_prefixes() {
++		check_ajax_referer('wpbsv-nonce');
++
++		// Have to remove extra slashes added by wp
++		$prefixes = json_decode(wp_unslash($_POST['prefixes']));
++		update_option($this->db::DEFAULT_PREFIXES, $prefixes);
++
++		wp_send_json('true');
++
+ 	}
+ }
+\ No newline at end of file
+diff --git a/admin/class-wp-upload-bsv-tx-builder.php b/admin/class-wp-upload-bsv-tx-builder.php
+index c456910..b289b4d 100644
+--- a/admin/class-wp-upload-bsv-tx-builder.php
++++ b/admin/class-wp-upload-bsv-tx-builder.php
+@@ -78,8 +78,9 @@ class Wp_Upload_Bsv_Tx_Builder {
+ 	}
+ 
+ 	public function send_one($post_id) {
+-		// $prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
+-		$prefixes = array('gendale.net');
++		$prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
++		// $prefixes = array('gendale.net');
++		// $prefixes = get_option($this->db::DEFAULT_PREFIXES);
+ 
+ 		$markdown = $this->markdown_from_id($post_id);
+ 
+@@ -130,6 +131,7 @@ class Wp_Upload_Bsv_Tx_Builder {
+ 		// Send transaction
+ 		$response = $this->send_transaction($data_to_send);
+ 
++
+ 		// If transaction was successful
+ 		if (!is_wp_error($response)) {
+ 			// Parse the txid data
+@@ -163,7 +165,7 @@ class Wp_Upload_Bsv_Tx_Builder {
+ 		array_filter($data);
+ 
+ 		// Check that data exists
+-		if (empty(data)) {
++		if (empty($data)) {
+ 			return new WP_Error('empty', 'Transaction contains no data');
+ 		}
+ 
+diff --git a/admin/js/admin-panel-react/src/components/AdminPanel.js b/admin/js/admin-panel-react/src/components/AdminPanel.js
+index be4a2b7..ce1ea1e 100644
+--- a/admin/js/admin-panel-react/src/components/AdminPanel.js
++++ b/admin/js/admin-panel-react/src/components/AdminPanel.js
+@@ -1,8 +1,7 @@
+ import React, { useState, useEffect } from 'react'
+ import axios from 'axios'
+-import styled from 'styled-components'
+ import MoneyButton from '@moneybutton/react-money-button'
+-import {  makeStyles } from '@material-ui/core/styles';
++import {  makeStyles, styled } from '@material-ui/core/styles';
+ import Table from '@material-ui/core/Table';
+ import TableBody from '@material-ui/core/TableBody';
+ import TableCell from '@material-ui/core/TableCell';
+@@ -24,10 +23,12 @@ import CircularProgress from '@material-ui/core/CircularProgress'
+ import moment from 'moment';
+ 
+ import TxOptions from './TxOptions';
++import withPrefixes from './withPrefixes'
+ import { green } from '@material-ui/core/colors';
+ 
+ // const wpURL = 'http://localhost:8888/wordpress/wp-json'
+ // With trailing slash
++console.log('running')
+ const wpURL = wpbsv_ajax_obj.urls.api
+ const useStyles = makeStyles({
+   table: {
+@@ -37,11 +38,6 @@ const useStyles = makeStyles({
+ 			// padding: '1rem'
+ 			borderBottom: 'none',
+ 		}
+-  },
+-	button: {
+-    '& > *': {
+-      // margin: theme.spacing(1),
+-    },
+   },
+ 	buttons: {
+ 		display: 'flex',
+@@ -49,6 +45,9 @@ const useStyles = makeStyles({
+ 		'& > :not(:first-child)': {
+ 			marginLeft: '.5rem',
+ 		},
++		'& button': {
++			textTransform: 'none'
++		}
+ 		// '& > '
+ 	},
+ 	row: {
+@@ -69,9 +68,9 @@ const useStyles = makeStyles({
+ 	},
+ });
+ 
+-const Prefixes = styled.div`
+-	padding: 1rem 0;
+-`
++const Prefixes = styled('div')({
++	padding: '1rem 0',
++})
+ 
+ const Row = ( props ) => {
+ 	const { 
+@@ -159,6 +158,7 @@ const Row = ( props ) => {
+ 
+ const AdminPanel = (props) => {
+ 	const {
++		// Selection props
+     areAllIndeterminate,
+     areAllSelected,
+     areAnySelected,
+@@ -168,17 +168,23 @@ const AdminPanel = (props) => {
+     handleSelectAll,
+     isItemSelected,
+ 		selections,
++		// Prefix props
++		protocols,
++		prefixTextValues,
++		prefixSelectValues,
++		prefixSelectHandler,
++		prefixTextHandler,
++		addPrefixHandler,
++		// addManyPrefix,
++		deletePrefixHandler
+   } = props;
+ 
+ 	const [posts, setPosts] = useState([])
+ 	const [transactions, setTransactions] = useState([])
+ 	const [expanded, setExpanded] = useState([])
+-	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
+-	const [prefixTextValues, setPrefixTextValues] = useState([''])
+ 	const [loading, setLoading] = useState(false)
+ 
+ 	useEffect( () => {
+-		// console.log("running")
+ 		axios.get(wpURL + 'wp/v2/posts')
+ 			.then( res => {
+ 				// console.log(res)
+@@ -285,40 +291,6 @@ const AdminPanel = (props) => {
+ 		}
+ 	}
+ 
+-	const prefixSelectHandler = (newValue, i) => {
+-		let values = prefixSelectValues.slice()
+-		values[i] = newValue
+-		setPrefixSelectValues(values)
+-	}
+-
+-	const prefixTextHandler = (newValue, i) => {
+-		let values = prefixTextValues.slice()
+-		values[i] = newValue
+-		setPrefixTextValues(values)
+-	}
+-
+-	const addPrefixHandler = () => {
+-		let selectValues = prefixSelectValues.slice()
+-		let textValues = prefixTextValues.slice()
+-		selectValues.push('Custom')
+-		textValues.push('')
+-
+-		setPrefixSelectValues(selectValues)
+-		setPrefixTextValues(textValues)
+-	}
+-
+-	// Remove prefix
+-	const deletePrefixHandler = prefixIdx => {
+-		let selectValues = prefixSelectValues.slice()
+-		let textValues = prefixTextValues.slice()
+-		selectValues.splice(prefixIdx, 1)
+-		textValues.splice(prefixIdx, 1)
+-
+-		setPrefixSelectValues(selectValues)
+-		setPrefixTextValues(textValues)
+-
+-	}
+-
+ 	return (
+ 		<div>
+ 			{/* <div class="notice notice-error is-dismissible"><p>Error!</p></div> */}
+@@ -367,6 +339,7 @@ const AdminPanel = (props) => {
+ 					<TxOptions
+ 						key={i}
+ 						optionsIndex={i}
++						protocols={protocols}
+ 						prefixTextValue={prefixTextValues[i]}
+ 						prefixSelectValue={prefixSelectValues[i]}
+ 						setPrefixSelect={prefixSelectHandler}
+@@ -389,4 +362,4 @@ const AdminPanel = (props) => {
+ 	)
+ }
+ 
+-export default withSelections(AdminPanel)
+\ No newline at end of file
++export default withPrefixes(withSelections(AdminPanel))
+\ No newline at end of file
+diff --git a/admin/js/admin-panel-react/src/components/DefaultPrefixes.js b/admin/js/admin-panel-react/src/components/DefaultPrefixes.js
+new file mode 100644
+index 0000000..555a49f
+--- /dev/null
++++ b/admin/js/admin-panel-react/src/components/DefaultPrefixes.js
+@@ -0,0 +1,107 @@
++import React, { useState, useEffect } from 'react'
++import axios from 'axios'
++import { makeStyles, styled } from '@material-ui/core/styles';
++import Button from '@material-ui/core/Button';
++
++import TxOptions from './TxOptions'
++import withPrefixes from './withPrefixes'
++
++const useStyles = makeStyles({
++	buttons: {
++		display: 'flex',
++		alignItems: 'center',
++		'& > :not(:first-child)': {
++			marginLeft: '.5rem',
++		},
++		'& button': {
++			textTransform: 'none'
++		}
++	},
++})
++
++const Prefixes = styled('div')({
++	padding: '1rem 0',
++})
++
++const WpButton = styled(Button)({
++	textTransform: 'none',
++	fontSize: 'inherit',
++	fontFamily: 'inherit',
++	textTransform: 'none'
++})
++
++const DefaultPrefixes = ( props ) => {
++	const {
++		protocols,
++		prefixTextValues,
++		prefixSelectValues,
++		prefixSelectHandler,
++		prefixTextHandler,
++		addPrefixHandler,
++		addManyPrefix,
++		deletePrefixHandler
++	} = props
++
++	const [prefixString, setPrefixString] = useState('')
++	
++	useEffect( () => {
++		addManyPrefix(wpbsv_ajax_obj.prefixes)
++	}, [])
++	// const createPrefixString
++
++	const handleSaveClick = () => {
++		let config = new FormData
++		config.append('_ajax_nonce', wpbsv_ajax_obj.nonce)
++		config.append('action', 'wpbsv_default_prefixes')
++		config.append('prefixes', JSON.stringify(prefixTextValues))
++
++		axios.post(ajaxurl, config)
++			.then( res => {
++				// console.log(res)
++			})
++			.catch( err => {
++				console.log(err)
++			})
++		document.getElementById('wpbsv-settings-form').submit()
++	}
++
++	const classes = useStyles()
++
++	// console.log(prefixTextValues)
++	// console.log(ajaxurl)
++	// console.log(wpbsv_ajax_obj)
++	return (
++		<>
++			<Prefixes>
++			{
++				prefixSelectValues.map((selectValue, i) => (
++					<TxOptions
++						key={i}
++						optionsIndex={i}
++						protocols={protocols}
++						prefixTextValue={prefixTextValues[i]}
++						prefixSelectValue={selectValue}
++						setPrefixSelect={prefixSelectHandler}
++						setPrefixText={prefixTextHandler}
++						deleteHandler={deletePrefixHandler}
++					/>
++				))
++			}
++			</Prefixes> 
++			<div className={classes.buttons}>
++				<Button
++					variant="contained"
++					color="secondary"
++					onClick={addPrefixHandler}
++					>Add Prefix</Button>
++				<Button 
++					variant="contained" 
++					color="primary" 
++					onClick={() => handleSaveClick()}
++				>Save Settings</Button>
++			</div>
++		</>
++	)
++}
++
++export default withPrefixes(DefaultPrefixes)
+\ No newline at end of file
+diff --git a/admin/js/admin-panel-react/src/components/TxOptions.js b/admin/js/admin-panel-react/src/components/TxOptions.js
+index af5cbeb..82f873d 100644
+--- a/admin/js/admin-panel-react/src/components/TxOptions.js
++++ b/admin/js/admin-panel-react/src/components/TxOptions.js
+@@ -21,15 +21,10 @@ const useStyles = makeStyles({
+ 	}
+ })
+ 
+-const protocols = new Map()
+-protocols.set('B://', '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut')
+-protocols.set('D://', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU')
+-
+-let selectedProtocol = {}
+-
+ const TxOptions = props => {
+ 	const {
+ 		optionsIndex,
++		protocols,
+ 		prefixSelectValue,
+ 		prefixTextValue,
+ 		setPrefixSelect,
+@@ -39,35 +34,17 @@ const TxOptions = props => {
+ 
+ 	const classes = useStyles();
+ 
+-	const currentPrefix = ''
+-
+-	// Set prefix text input to protocol prefix string
+ 	const handleSelectChange = e => {
+ 		const protocol = e.target.value
+ 		setPrefixSelect(protocol, optionsIndex)
+-
+-		if (protocols.has(protocol)) {
+-			setPrefixText(protocols.get(protocol), optionsIndex)
+-		}
+-		else {
+-			setPrefixText('', optionsIndex)
+-		}
+ 	}
+ 
+-	// Reset prefix select input if text no longer matches protocol input
+ 	const handleTextChange = e => {
+ 		const prefix = e.target.value
+ 		setPrefixText(prefix, optionsIndex)
+-
+-		if (protocols.has(prefixSelectValue)) {
+-			if (protocols.get(prefixSelectValue) !== prefix) {
+-				setPrefixSelect('Custom', optionsIndex)
+-			}
+-		}
+ 	}
+ 
+ 	return (
+-		<>
+ 		<div className={classes.inputContainer}>
+ 			<label htmlFor="prefix" id="prefix-label">Prefix:</label>
+ 			<select name="protocol" id="protocol" value={prefixSelectValue} onChange={handleSelectChange}>
+@@ -81,8 +58,6 @@ const TxOptions = props => {
+         <DeleteIcon />
+       </IconButton>
+ 		</div>
+-		{/* <Button variant="contained" color="secondary">Add Prefix</Button> */}
+-		</>
+ 	)
+ }
+ 
+diff --git a/admin/js/admin-panel-react/src/components/withPrefixes.js b/admin/js/admin-panel-react/src/components/withPrefixes.js
+new file mode 100644
+index 0000000..bfbfee8
+--- /dev/null
++++ b/admin/js/admin-panel-react/src/components/withPrefixes.js
+@@ -0,0 +1,112 @@
++import React, { useState } from 'react'
++
++const protocolList = [
++	['B://', '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut'],
++	['D://', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU']
++]
++
++// Define protocol list map 
++const protocolMap = new Map(protocolList)
++
++// Reverse map it as well
++const prefixMap = new Map(
++	protocolList.map(x => [x[1], x[0]])
++)
++
++const withPrefixes = (Component) => (props) => { 
++
++	const [prefixSelectValues, setPrefixSelectValues] = useState(['Custom'])
++	const [prefixTextValues, setPrefixTextValues] = useState([''])
++
++	// Called only from this function
++	const setPrefixSelect = (newValue, i) => {
++		let values = prefixSelectValues.slice()
++		values[i] = newValue
++		setPrefixSelectValues(values)
++	}
++
++	// Called only from this function
++	const setPrefixText = (newValue, i) => {
++		let values = prefixTextValues.slice()
++		values[i] = newValue
++		setPrefixTextValues(values)
++	}
++
++	// Called by child components
++	const prefixSelectHandler = (protocol, i) => {
++		setPrefixSelect(protocol, i)
++
++		// Set prefix text based on protocol selected
++		if (protocolMap.has(protocol)) {
++			setPrefixText(protocolMap.get(protocol), i)
++		}
++		else {
++			setPrefixText('', i)
++		}
++	}
++
++	// Called by child components
++	const prefixTextHandler = (prefix, i) => {
++		setPrefixText(prefix, i)
++
++		// Reset prefix select input if text no longer matches protocol
++		if (protocolMap.has(prefixSelectValues[i])) {
++			if (protocolMap.get(prefixSelectValues[i]) !== prefix) {
++				setPrefixSelect('Custom', i)
++			}
++		}
++		// Change protocol select option based on prefix text
++		if (prefixMap.has(prefix)) {
++			setPrefixSelect(prefixMap.get(prefix), i)
++		}
++	}
++
++	// Add a new prefix
++	const addPrefixHandler = () => {
++		let selectValues = prefixSelectValues.slice()
++		let textValues = prefixTextValues.slice()
++		selectValues.push('Custom')
++		textValues.push('')
++
++		setPrefixSelectValues(selectValues)
++		setPrefixTextValues(textValues)
++	}
++
++	// Add many prefixes at once
++	const addManyPrefix = prefixes => {
++		setPrefixTextValues(prefixes)
++		setPrefixSelectValues(prefixes.map(prefix => {
++			if (prefixMap.has(prefix)) {
++				return prefixMap.get(prefix)
++			}
++			return 'Custom'
++		}))
++	}
++
++	// Remove prefix
++	const deletePrefixHandler = prefixIdx => {
++		let selectValues = prefixSelectValues.slice()
++		let textValues = prefixTextValues.slice()
++		selectValues.splice(prefixIdx, 1)
++		textValues.splice(prefixIdx, 1)
++
++		setPrefixSelectValues(selectValues)
++		setPrefixTextValues(textValues)
++	}
++
++	return (
++		<Component
++			protocols={protocolMap}
++			prefixTextValues={prefixTextValues}
++			prefixSelectValues={prefixSelectValues}
++			prefixSelectHandler={prefixSelectHandler}
++			prefixTextHandler={prefixTextHandler}
++			addPrefixHandler={addPrefixHandler}
++			addManyPrefix={addManyPrefix}
++			deletePrefixHandler={deletePrefixHandler}
++			{ ...props }
++		/>
++	)
++ }
++
++ export default withPrefixes
+diff --git a/admin/js/admin-panel-react/src/index.html b/admin/js/admin-panel-react/src/index.html
+index 507d12a..2b6cb21 100644
+--- a/admin/js/admin-panel-react/src/index.html
++++ b/admin/js/admin-panel-react/src/index.html
+@@ -5,6 +5,5 @@
+ 	<title>React Start</title>
+ </head>
+ <body>
+-	<div id="wpbsv-admin-panel"></div>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/admin/js/admin-panel-react/src/index.js b/admin/js/admin-panel-react/src/index.js
+index 7107347..cd5c9d7 100644
+--- a/admin/js/admin-panel-react/src/index.js
++++ b/admin/js/admin-panel-react/src/index.js
+@@ -1,6 +1,27 @@
+-import React from 'react'
++import React, { Suspense } from 'react'
+ import { render } from 'react-dom'
+ 
+-import AdminPanel from './components/AdminPanel'
++// import AdminPanel from './components/AdminPanel'
++// import DefaultPrefixes from './components/DefaultPrefixes'
+ 
+-render(<AdminPanel />, document.getElementById('wpbsv-admin-panel'))
+\ No newline at end of file
++const adminPanelContainer = document.getElementById('wpbsv-admin-panel')
++const defaultPrefixesContainer = document.getElementById('wpbsv-prefix-container')
++
++const App = (props) => {
++	return (
++		<Suspense fallback={<div>Loading...</div>}>
++			{props.children}
++		</Suspense>
++	)
++}
++
++// Dynamically render components to avoid loading unused modules
++const DefaultPrefixes = React.lazy(() => import('./components/DefaultPrefixes'))
++const AdminPanel = React.lazy(() => import('./components/AdminPanel'))
++
++if (adminPanelContainer) {
++	render(<App><AdminPanel/></App>, adminPanelContainer)
++}
++else if (defaultPrefixesContainer) {
++	render(<App><DefaultPrefixes/></App>, defaultPrefixesContainer)
++}
+diff --git a/includes/class-wp-upload-bsv-db.php b/includes/class-wp-upload-bsv-db.php
+index 923430d..4d8a6f6 100644
+--- a/includes/class-wp-upload-bsv-db.php
++++ b/includes/class-wp-upload-bsv-db.php
+@@ -27,6 +27,7 @@ class Wp_Upload_Bsv_DB {
+ 	public const AUTO_UPLOAD_GROUP = 'wpbsv-auto-upload';
+ 	public const UPLOAD_ON_PUBLISH = 'wpbsv-upload-on-publish';
+ 	public const UPLOAD_ON_UPDATE = 'wpbsv-upload-on-update';
++	public const DEFAULT_PREFIXES = 'wpbsv-default-prefixes';
+ 
+ 	/**
+ 	 * Initialize the class and set its properties.
+diff --git a/includes/class-wp-upload-bsv.php b/includes/class-wp-upload-bsv.php
+index ad67fa0..c6692ff 100644
+--- a/includes/class-wp-upload-bsv.php
++++ b/includes/class-wp-upload-bsv.php
+@@ -178,7 +178,7 @@ class Wp_Upload_Bsv {
+ 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
+ 		// $tx_builder = new Wp_Upload_Bsv_Tx_Builder;
+ 
+-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
++		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+ 
+ 		// Tools page
+ 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_tools, 'enqueue_scripts' );
+@@ -188,6 +188,7 @@ class Wp_Upload_Bsv {
+ 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_settings, 'enqueue_scripts' );
+ 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
+ 		$this->loader->add_action( 'admin_init', $plugin_settings, 'initialize_plugin_settings' );
++		$this->loader->add_action( 'wp_ajax_wpbsv_default_prefixes', $plugin_settings, 'save_default_prefixes');
+ 
+ 		// API Controller endpoints
+ 		$this->loader->add_action( 'rest_api_init', $controller, 'register_endpoints' );
+@@ -196,14 +197,7 @@ class Wp_Upload_Bsv {
+ 		$this->loader->add_action( 'transition_post_status', $plugin_admin, 'auto_upload_post', 10, 3 );
+ 		// $this->loader->add_action( 'publish_post', $tx_builder, 'send_one', 10, 2 );
+ 
+-
+-		// $this->loader->add_action( 'admin_init', $plugin_admin, 'tx_table_test' );
+-		// $this->loader->add_action( 'admin_init', $plugin_admin, 'markdown_test' );
+ 		// $this->loader->add_action( 'wp_ajax_wpbsv_send_transaction', $plugin_admin, 'send_transaction_handler' );
+-
+-		// $this->loader->add_action( 'publish_post', $plugin_admin, 'uploadPost');
+-		// $this->loader->add_action( 'wp_print_scripts', $plugin_admin, 'se_inspect_scripts' );
+-
+ 	}
+ 
+ 	/**
