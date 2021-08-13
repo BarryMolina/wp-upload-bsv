@@ -177,7 +177,8 @@ class Wp_Upload_Bsv {
 		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
 
-		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+		// Script for block editor
+		$this->loader->add_action( 'enqueue_block_editor_assets', $plugin_admin, 'enqueue_scripts' );
 
 		// Tools page
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_tools, 'enqueue_scripts' );

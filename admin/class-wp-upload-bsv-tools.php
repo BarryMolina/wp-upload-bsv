@@ -105,6 +105,7 @@ class Wp_Upload_Bsv_Tools {
 					'api' => get_rest_url(),
 					// 'transactions' => rest_url('wpbsv-upload-bsv/v1/transactions'),
 				),
+				'page' => 'tools'
       )
     );
 	}

@@ -105,7 +105,8 @@ class Wp_Upload_Bsv_Settings {
       'wpbsv_ajax_obj', 
       array(
         'nonce' => wp_create_nonce('wpbsv-nonce'),
-				'prefixes' => get_option($this->db::DEFAULT_PREFIXES)
+				'prefixes' => get_option($this->db::DEFAULT_PREFIXES),
+				'page' => 'settings'
 				// 'urls' => array(
 				// 	// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
 				// 	'api' => get_rest_url(),

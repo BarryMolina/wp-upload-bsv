@@ -96,7 +96,30 @@ class Wp_Upload_Bsv_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts($hook) {
+	public function enqueue_scripts() {
+
+		if (in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+			echo 'here';
+			wp_enqueue_script( 'wpbsv-admin-panel-react', 'http://localhost:3000/bundle.js', array(), $this->version, true );
+		}
+		// Production scripts
+		else {
+			wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array('wp-hooks', 'data'), $this->version, true );
+		}
+		wp_localize_script(
+      'wpbsv-admin-panel-react',
+      'wpbsv_ajax_obj', 
+      array(
+        'nonce' => wp_create_nonce('wpbsv-nonce'),
+				'prefixes' => get_option($this->db::DEFAULT_PREFIXES),
+				'page' => 'block-editor'
+				// 'urls' => array(
+				// 	// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
+				// 	'api' => get_rest_url(),
+				// ),
+				
+      )
+    );
 
 	}
 

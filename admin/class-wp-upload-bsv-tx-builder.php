@@ -236,7 +236,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 */
 	public function send_transaction($data) {
 
-		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
+		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
 			'method'      => 'POST',
 			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
