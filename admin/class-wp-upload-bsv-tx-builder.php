@@ -79,9 +79,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	}
 
 	public function send_one($post_id) {
-		$prefixes = array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'gendale.net');
-		// $prefixes = array('gendale.net');
-		// $prefixes = get_option($this->db::DEFAULT_PREFIXES);
+		$prefixes = get_option($this->db::DEFAULT_PREFIXES);
 
 		$markdown = $this->markdown_from_id($post_id);
 
@@ -238,7 +236,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 */
 	public function send_transaction($data) {
 
-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
 			'method'      => 'POST',
 			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
