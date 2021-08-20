@@ -100,18 +100,14 @@ class Wp_Upload_Bsv_Settings {
 		else {
 			wp_enqueue_script( 'wpbsv-admin-panel-react', plugin_dir_url( __FILE__ ) . 'js/admin-panel-react/build/bundle.js', array(), $this->version, true );
 		}
+
 		wp_localize_script(
       'wpbsv-admin-panel-react',
       'wpbsv_ajax_obj', 
       array(
         'nonce' => wp_create_nonce('wpbsv-nonce'),
 				'prefixes' => get_option($this->db::DEFAULT_PREFIXES),
-				'page' => 'settings'
-				// 'urls' => array(
-				// 	// 'api' => rest_url('wpbsv-upload-bsv/v1/'),
-				// 	'api' => get_rest_url(),
-				// ),
-				
+				'page' => 'settings',
       )
     );
 	}
@@ -143,30 +139,41 @@ class Wp_Upload_Bsv_Settings {
 			<div class="wrap">
 				<h2>Mirror to BSV Settings</h2>
 				<div id="wpbsv-settings-page">
+					<h2>Wallet Info</h2>
+					<table class="form-table" role="presentation">
+						<tbody>
+							<tr>
+								<th scope="row">Address</th>
+								<td><?php echo (!is_wp_error($res = $this->get_address()) ? json_decode($res['body'], true)['address']: '') ?></td>
+							</tr>
+							<tr>
+								<th scope="row">Balance</th>
+								<td><?php echo (!is_wp_error($res = $this->get_balance()) ? json_decode($res['body'], true)['balance']['confirmed'] : '') ?></td>
+							</tr>
+						</tbody>
+					</table>
 					<form action="options.php" method="post" id="wpbsv-settings-form">
 						<?php
 							settings_fields($this->db::AUTO_UPLOAD_GROUP);
 							do_settings_sections($this->db::AUTO_UPLOAD_GROUP);
-							echo '<div id="wpbsv-prefix-container"></div>';
 							// submit_button('Save Settings');
 						?>
 					</form>
-					<!-- <div id="wpbsv-prefix-container"></div> -->
+					<h2>Default Prefixes</h2>
+					<div id="wpbsv-prefix-container"></div>
 				</div>
 			</div>
 		<?php
 	}
 
 	public function initialize_plugin_settings() {
-		// update_option($this->db::DEFAULT_PREFIXES, array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', 'someotherprefix', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU'));
 
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_PUBLISH);
 		register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::UPLOAD_ON_UPDATE);
-		// register_setting($this->db::AUTO_UPLOAD_GROUP, $this->db::DEFAULT_PREFIXES);
 
 		add_settings_section(
 			'upload_settings_section',
-			'Auto Upload',
+			'Auto Upload Settings',
 			array($this, 'upload_section_callback'),
 			$this->db::AUTO_UPLOAD_GROUP
 		);
@@ -186,15 +193,6 @@ class Wp_Upload_Bsv_Settings {
 			$this->db::AUTO_UPLOAD_GROUP,
 			'upload_settings_section'
 		);
-
-		// add_settings_field(
-		// 	'default_prefixes',
-		// 	'Default Prefixes',
-		// 	array($this, 'default_prefixes_callback'),
-		// 	$this->db::AUTO_UPLOAD_GROUP,
-		// 	'upload_settings_section',
-		// 	// array('class' => 'hidden')
-		// );
 	}
 
 	/**
@@ -246,5 +244,57 @@ class Wp_Upload_Bsv_Settings {
 
 		wp_send_json('true');
 
+	}
+
+	/**
+	 * Get the address associated with the wallet's private key
+	 *
+	 * @return 	array|WP_Error 			$out 					The wallet's address or WP_Error on failure
+	 */
+	private function get_address() {
+		$response = wp_remote_get('http://localhost:9999/address');
+    $code = wp_remote_retrieve_response_code($response);
+
+    // Check if bad request
+    if (!empty($code) && ( $code < 200 || $code >= 400 )) {
+      $body = wp_remote_retrieve_body($response);
+      $out = new WP_Error($code, $response, array('status' => $code));
+    }
+    else {
+      $out = $response;
+    }
+		return $out;
+	}
+
+	/**
+	 * Get the balance available at the wallet's private key
+	 *
+	 * @return 	array|WP_Error 			$out 					The wallet's address or WP_Error on failure
+	 */
+	private function get_balance() {
+		$response = wp_remote_get('http://localhost:9999/balance');
+    $code = wp_remote_retrieve_response_code($response);
+
+    // Check if bad request
+    if (!empty($code) && ( $code < 200 || $code >= 400 )) {
+      $body = wp_remote_retrieve_body($response);
+      $out = new WP_Error($code, $response, array('status' => $code));
+    }
+    else {
+      $out = $response;
+    }
+		return $out;
+	}
+
+	public function test_get_address() {
+		$response = $this->get_address();
+		if (!is_wp_error($response)) {
+			$balance = json_decode($response['body'], true);
+			print_r($balance);
+		}
+		else {
+			echo 'Error!';
+			print_r($response);
+		}
 	}
 }

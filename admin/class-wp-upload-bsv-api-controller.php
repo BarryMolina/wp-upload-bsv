@@ -141,8 +141,10 @@ class Wp_Upload_Bsv_API_Controller {
 		// return $postData;
 		// return new WP_Error('error_code', 'this is an error', array('status' => 401) );
 		// return new WP_REST_Response(['data' => ['error' => 'no posts']], 400);
+
 		$response = $this->tx_builder->send_many($postData);
 		return $response;
+
 		// if (!is_wp_error($response)) {
 		// 	return $response
 		// }

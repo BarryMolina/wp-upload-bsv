@@ -151,6 +151,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 			// Automatically converts array to JSON
 			return $response_data;
 		}
+		// Return error
 		return $response;
 	}
 	/**
@@ -236,7 +237,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 */
 	public function send_transaction($data) {
 
-		$response = wp_remote_post ('http://localhost:9999/buildfile', array(
+		$response = wp_remote_post ('http://localhost:9999/sendfile', array(
 			'method'      => 'POST',
 			'timeout'			=> 120,
 			'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
@@ -248,9 +249,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 
     // Check if bad request
     if (!empty($code) && ( $code < 200 || $code >= 400 )) {
-			// echo 'running code is ' . $code . 'that was the code';
       $body = wp_remote_retrieve_body($response);
-      // $out = new WP_Error($code, $body);
       $out = new WP_Error($code, $response, array('status' => $code));
     }
     else {

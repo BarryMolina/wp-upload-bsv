@@ -139,5 +139,5 @@ class Wp_Upload_Bsv_Tools {
 				<div id="wpbsv-admin-panel"></div>
 			</div>
 		<?php
-		}
+	}
 }

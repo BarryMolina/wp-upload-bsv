@@ -67,9 +67,6 @@ const DefaultPrefixes = ( props ) => {
 
 	const classes = useStyles()
 
-	// console.log(prefixTextValues)
-	// console.log(ajaxurl)
-	// console.log(wpbsv_ajax_obj)
 	return (
 		<>
 			<Prefixes>

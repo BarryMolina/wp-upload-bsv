@@ -235,28 +235,24 @@ const AdminPanel = (props) => {
 					return key
 				}
 			}),
-			// postIds: Object.keys(selections),
 			prefixes: prefixTextValues,
 			filetype: "text/markdown",
 			encoding: "utf-8"
 		}
 
-		// console.log(postData)
-		// console.log(JSON.stringify(postData))
 		axios.post(
 			`${wpURL}wpbsv/v1/transactions`, 
 			postData,
 			{ headers: { 'X-WP-Nonce': wpbsv_ajax_obj.nonce} }
 		)
 			.then( res => { 
-				console.log(res)
 				setTransactions([...transactions, ...res.data])
 				handleClearAll(posts)
 				setLoading(false)
 			 })
 			.catch( err => {
 				setLoading(false)
-				console.log(err.response)
+				console.log(err.response ? err.response : err)
 			})
 	}
 
