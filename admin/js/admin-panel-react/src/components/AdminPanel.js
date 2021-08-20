@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import MoneyButton from '@moneybutton/react-money-button'
 import {  makeStyles, styled } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -67,7 +66,12 @@ const useStyles = makeStyles({
 		color: 'orange',
 	},
 	logo: {
-		maxWidth: '32px',
+		maxWidth: '28px',
+		paddingLeft: '12px',
+		transition: 'transform .2s ease',
+		'&:hover': {
+			transform: 'scale(1.2,1.2)'
+		}
 	}
 });
 
@@ -104,6 +108,12 @@ const Row = ( props ) => {
 				<TableCell component="th" scope="row">
 					<Link href={post.link} target="_blank">{post.title.rendered}</Link>
 				</TableCell>
+				<TableCell>{post.author_name}</TableCell>
+				{post.modified > post.date ? 
+					<TableCell>Last Modified<br/>{moment(post.modified).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
+				:
+					<TableCell>Published<br/>{moment(post.date).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
+				}
 				{transactions.length > 0 ? 
 				// Check that at least one transaction was made after the last modified date
 					transactions.some(tx => moment(tx.time).isSameOrAfter(post.modified)) ? 
@@ -116,12 +126,6 @@ const Row = ( props ) => {
 				<TableCell>
 					<Link href="#" target="_blank"><BSVLogo className={classes.logo} /></Link>
 				</TableCell>
-				<TableCell>{post.author_name}</TableCell>
-				{post.modified > post.date ? 
-					<TableCell>Last Modified<br/>{moment(post.modified).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
-				:
-					<TableCell>Published<br/>{moment(post.date).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
-				}
 			</TableRow>
 			<TableRow>
 				<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
@@ -315,10 +319,10 @@ const AdminPanel = (props) => {
 								</IconButton>
 							</TableCell>
 							<TableCell>Post</TableCell>
-							<TableCell>Status</TableCell>
-							<TableCell>View on BSV</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
+							<TableCell>Status</TableCell>
+							<TableCell>View on BSV</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
