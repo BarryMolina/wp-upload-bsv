@@ -21,6 +21,7 @@ import withSelections from 'react-item-select'
 import Link from '@material-ui/core/Link';
 import CircularProgress from '@material-ui/core/CircularProgress'
 import moment from 'moment';
+import BSVLogo from '../images/bsv-logo.svg'
 
 import TxOptions from './TxOptions';
 import withPrefixes from './withPrefixes'
@@ -65,6 +66,9 @@ const useStyles = makeStyles({
 	orange: {
 		color: 'orange',
 	},
+	logo: {
+		maxWidth: '32px',
+	}
 });
 
 const Prefixes = styled('div')({
@@ -97,6 +101,9 @@ const Row = ( props ) => {
 						{isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
 					</IconButton>
 				</TableCell>
+				<TableCell component="th" scope="row">
+					<Link href={post.link} target="_blank">{post.title.rendered}</Link>
+				</TableCell>
 				{transactions.length > 0 ? 
 				// Check that at least one transaction was made after the last modified date
 					transactions.some(tx => moment(tx.time).isSameOrAfter(post.modified)) ? 
@@ -106,8 +113,8 @@ const Row = ( props ) => {
 				:
 					<TableCell className={classes.red}>Not Mirrored</TableCell>
 				}
-				<TableCell component="th" scope="row">
-					<Link href={post.link} target="_blank">{post.title.rendered}</Link>
+				<TableCell>
+					<Link href="#" target="_blank"><BSVLogo className={classes.logo} /></Link>
 				</TableCell>
 				<TableCell>{post.author_name}</TableCell>
 				{post.modified > post.date ? 
@@ -307,8 +314,9 @@ const AdminPanel = (props) => {
 									{areAllExpanded() ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon /> }
 								</IconButton>
 							</TableCell>
-							<TableCell>Status</TableCell>
 							<TableCell>Post</TableCell>
+							<TableCell>Status</TableCell>
+							<TableCell>View on BSV</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
 						</TableRow>
