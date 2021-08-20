@@ -48,10 +48,10 @@ const TxOptions = props => {
 		<div className={classes.inputContainer}>
 			<label htmlFor="prefix" id="prefix-label">Prefix:</label>
 			<select name="protocol" id="protocol" value={prefixSelectValue} onChange={handleSelectChange}>
-				<option value="Custom">Custom</option>
 				{ Array.from(protocols.keys(), protocol => (
 						<option value={protocol} key={protocol}>{protocol}</option>
 					)) }
+				<option value="Custom">Custom</option>
 			</select>
 			<input name="prefix" id="prefix" type="text" value={prefixTextValue} onChange={handleTextChange}/>
 			<IconButton aria-label="delete" onClick={() => deleteHandler(optionsIndex)}>

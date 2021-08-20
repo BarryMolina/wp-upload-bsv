@@ -50,5 +50,8 @@ class Wp_Upload_Bsv_Activator {
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
+
+		// Set default prefix to B://
+		add_option($db::DEFAULT_PREFIXES, array('19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut'));
 	}
 }

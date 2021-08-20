@@ -68,13 +68,15 @@ class Wp_Upload_Bsv_Tools {
 	 */
 	public function __construct( $plugin_name, $version ) {
 
-		// $this->load_dependencies();
+		$this->load_dependencies();
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->db = new Wp_Upload_Bsv_DB;
 	}
 
 	private function load_dependencies() {
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
 	}
 
 	/**
@@ -103,9 +105,9 @@ class Wp_Upload_Bsv_Tools {
         'nonce' => wp_create_nonce('wp_rest'),
 				'urls' => array(
 					'api' => get_rest_url(),
-					// 'transactions' => rest_url('wpbsv-upload-bsv/v1/transactions'),
 				),
-				'page' => 'tools'
+				'page' => 'tools',
+				'prefixes' => get_option($this->db::DEFAULT_PREFIXES, array()),
       )
     );
 	}

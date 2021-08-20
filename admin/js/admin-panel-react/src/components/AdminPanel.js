@@ -24,7 +24,6 @@ import moment from 'moment';
 
 import TxOptions from './TxOptions';
 import withPrefixes from './withPrefixes'
-import { green } from '@material-ui/core/colors';
 
 // const wpURL = 'http://localhost:8888/wordpress/wp-json'
 // With trailing slash
@@ -175,7 +174,7 @@ const AdminPanel = (props) => {
 		prefixSelectHandler,
 		prefixTextHandler,
 		addPrefixHandler,
-		// addManyPrefix,
+		addManyPrefix,
 		deletePrefixHandler
   } = props;
 
@@ -220,6 +219,8 @@ const AdminPanel = (props) => {
 			.catch( err => {
 				console.log(err)
 			})
+		// Populate prefixes with default from wp
+		addManyPrefix(wpbsv_ajax_obj.prefixes)
 	}, [])
 
 	const classes = useStyles();

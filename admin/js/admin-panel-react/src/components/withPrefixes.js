@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 const protocolList = [
-	['B://', '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut'],
+	['B:// (Default)', '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut'],
 	['D://', '19iG3WTYSsbyos3uJ733yK4zEioi1FesNU']
 ]
 

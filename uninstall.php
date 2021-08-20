@@ -29,3 +29,12 @@
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
+
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
+$db = new Wp_Upload_Bsv_DB;
+// global $wpdb;
+// $table_name = $db->get_tx_table();
+// // $table_name = $wpdb->prefix . 'bsv_transactions';
+// $wpdb->query("DROP TABLE IF EXISTS $table_name");
+
+delete_option($db::DEFAULT_PREFIXES);
