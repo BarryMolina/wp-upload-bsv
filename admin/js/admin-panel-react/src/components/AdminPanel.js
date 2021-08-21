@@ -92,6 +92,11 @@ const Row = ( props ) => {
 	// const [open, setOpen] = useState(false)
 	const classes = useStyles()
 
+	const chooseLink = () => {
+		return transactions[transactions.length - 1]
+	}
+
+	console.log(transactions)
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
@@ -124,7 +129,9 @@ const Row = ( props ) => {
 					<TableCell className={classes.red}>Not Mirrored</TableCell>
 				}
 				<TableCell>
-					<Link href="#" target="_blank"><BSVLogo className={classes.logo} /></Link>
+					{transactions.length > 0 && 
+						<Link href={"https://bico.media/" + chooseLink().tx_id} target="_blank"><BSVLogo className={classes.logo} /></Link>
+					}
 				</TableCell>
 			</TableRow>
 			<TableRow>
@@ -318,7 +325,7 @@ const AdminPanel = (props) => {
 									{areAllExpanded() ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon /> }
 								</IconButton>
 							</TableCell>
-							<TableCell>Post</TableCell>
+							<TableCell>Title</TableCell>
 							<TableCell>Author</TableCell>
 							<TableCell>Date</TableCell>
 							<TableCell>Status</TableCell>

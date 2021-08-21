@@ -123,7 +123,7 @@ class Wp_Upload_Bsv_API_Controller {
 		global $wpdb;
 		$tx_table_name = $this->db->get_tx_table();
 		
-		$query = "SELECT * FROM $tx_table_name";
+		$query = "SELECT * FROM $tx_table_name ORDER BY time ASC";
 		$transactions = $wpdb->get_results($query);
 		return $transactions;
 	}
