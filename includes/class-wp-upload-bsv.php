@@ -177,9 +177,6 @@ class Wp_Upload_Bsv {
 		$plugin_settings = new Wp_Upload_Bsv_Settings( $this->get_plugin_name(), $this->get_version() );
 		$controller = new Wp_Upload_Bsv_API_Controller( $this->get_plugin_name(), $this->get_version() );
 
-		// Script for block editor
-		// $this->loader->add_action( 'enqueue_block_editor_assets', $plugin_admin, 'enqueue_scripts' );
-
 		// Tools page
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_tools, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_tools, 'setup_plugin_management_menu' );
@@ -189,8 +186,6 @@ class Wp_Upload_Bsv {
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'setup_plugin_management_menu' );
 		$this->loader->add_action( 'admin_init', $plugin_settings, 'initialize_plugin_settings' );
 		$this->loader->add_action( 'wp_ajax_wpbsv_default_prefixes', $plugin_settings, 'save_default_prefixes');
-
-		// $this->loader->add_action( 'admin_init', $plugin_settings, 'test_get_address');
 
 		// API Controller endpoints
 		$this->loader->add_action( 'rest_api_init', $controller, 'register_endpoints' );
