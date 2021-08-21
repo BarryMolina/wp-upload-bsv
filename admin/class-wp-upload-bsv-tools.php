@@ -13,15 +13,11 @@
 /**
  * The manual upload functionality of the plugin.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
  * @package    Wp_Upload_Bsv
  * @subpackage Wp_Upload_Bsv/admin
  * @author     Barry Molina <bazzaboy@gmail.com>
  */
 class Wp_Upload_Bsv_Tools {
-	// use League\HTMLToMarkdown\HtmlConverter;
 
 	/**
 	 * The ID of this plugin.

@@ -30,8 +30,5 @@ class Wp_Upload_Bsv_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-upload-bsv-db.php';
-		$db = new Wp_Upload_Bsv_DB;
-		delete_option($db::DEFAULT_PREFIXES);
 	}
 }

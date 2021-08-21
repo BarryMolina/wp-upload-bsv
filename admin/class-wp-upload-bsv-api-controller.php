@@ -13,9 +13,6 @@
 /**
  * Manages the API endpoints for the plugin
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
  * @package    Wp_Upload_Bsv
  * @subpackage Wp_Upload_Bsv/admin
  * @author     Barry Molina <bazzaboy@gmail.com>
@@ -91,19 +88,10 @@ class Wp_Upload_Bsv_API_Controller {
 		register_rest_route('wpbsv/v1', '/transactions', array(
 			'methods' => WP_REST_Server::CREATABLE,
 			'callback' => array($this, 'handle_post_transactions'),
-			// Validation callback
-			// 'args' => array(
-			// 	'posts' => array(
-			// 		'validate_callback' => function($posts) {
-			// 			return !empty($posts);
-			// 		}
-			// 	),
-			// ),
 			// Authorization
-			// 'permission_callback' => function() {
-			// 	return current_user_can( 'publish_posts' );
-			// }
-			'permission_callback' => '__return_true'
+			'permission_callback' => function() {
+				return current_user_can( 'publish_posts' );
+			}
 		));
 
 		// GET transactions
@@ -138,15 +126,7 @@ class Wp_Upload_Bsv_API_Controller {
 		// Get the parsed JSON request body as array
 		$postData = $request->get_json_params();
 
-		// return $postData;
-		// return new WP_Error('error_code', 'this is an error', array('status' => 401) );
-		// return new WP_REST_Response(['data' => ['error' => 'no posts']], 400);
-
 		$response = $this->tx_builder->send_many($postData);
 		return $response;
-
-		// if (!is_wp_error($response)) {
-		// 	return $response
-		// }
 	}
 }

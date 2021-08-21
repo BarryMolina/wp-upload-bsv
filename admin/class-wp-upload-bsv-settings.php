@@ -13,15 +13,11 @@
 /**
  * The automatic upload functionality of the plugin.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
  * @package    Wp_Upload_Bsv
  * @subpackage Wp_Upload_Bsv/admin
  * @author     Barry Molina <bazzaboy@gmail.com>
  */
 class Wp_Upload_Bsv_Settings {
-	// use League\HTMLToMarkdown\HtmlConverter;
 
 	/**
 	 * The ID of this plugin.
@@ -51,15 +47,6 @@ class Wp_Upload_Bsv_Settings {
 	protected $db;
 
 	/**
-	 * The class responsible for all upload functionality
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      Wp_Upload_Bsv_Admin    $db    Handles database access
-	 */
-	protected $admin;
-
-	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -73,7 +60,6 @@ class Wp_Upload_Bsv_Settings {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 		$this->db = new Wp_Upload_Bsv_DB;
-		// $this->admin = new Wp_Upload_Bsv_Admin;
 	}
 
 	private function load_dependencies() {
@@ -235,6 +221,11 @@ class Wp_Upload_Bsv_Settings {
 		<?php
 	}
 
+	/**
+	 * Saves default prefixes to database. Called from front-end javascript via the wp_ajax_wpbsv_default_prefixes hook
+	 *
+	 * @return void
+	 */
 	public function save_default_prefixes() {
 		check_ajax_referer('wpbsv-nonce');
 
@@ -243,7 +234,6 @@ class Wp_Upload_Bsv_Settings {
 		update_option($this->db::DEFAULT_PREFIXES, $prefixes);
 
 		wp_send_json('true');
-
 	}
 
 	/**
@@ -284,17 +274,5 @@ class Wp_Upload_Bsv_Settings {
       $out = $response;
     }
 		return $out;
-	}
-
-	public function test_get_address() {
-		$response = $this->get_address();
-		if (!is_wp_error($response)) {
-			$balance = json_decode($response['body'], true);
-			print_r($balance);
-		}
-		else {
-			echo 'Error!';
-			print_r($response);
-		}
 	}
 }
