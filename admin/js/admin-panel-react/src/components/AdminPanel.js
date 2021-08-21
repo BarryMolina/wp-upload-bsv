@@ -25,9 +25,7 @@ import BSVLogo from '../images/bsv-logo.svg'
 import TxOptions from './TxOptions';
 import withPrefixes from './withPrefixes'
 
-// const wpURL = 'http://localhost:8888/wordpress/wp-json'
 // With trailing slash
-console.log('running')
 const wpURL = wpbsv_ajax_obj.urls.api
 const useStyles = makeStyles({
   table: {
@@ -67,12 +65,17 @@ const useStyles = makeStyles({
 	},
 	logo: {
 		maxWidth: '28px',
-		paddingLeft: '12px',
+		marginLeft: '24px',
 		transition: 'transform .2s ease',
 		'&:hover': {
+			cursor: 'pointer',
 			transform: 'scale(1.2,1.2)'
+		},
+		'@media only screen and (max-width: 865px)': {
+			marginLeft: '12px'
 		}
-	}
+
+	},
 });
 
 const Prefixes = styled('div')({
@@ -92,11 +95,16 @@ const Row = ( props ) => {
 	// const [open, setOpen] = useState(false)
 	const classes = useStyles()
 
-	const chooseLink = () => {
+	// Find the most recent transaction with a B prefix. If not found, simply return most recent.
+	const mostRecentB = () => {
+		for (let x = transactions.length - 1; x >= 0; x--) {
+			if (transactions[x].prefix === '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut') {
+				return transactions[x]
+			}
+		}
 		return transactions[transactions.length - 1]
 	}
 
-	console.log(transactions)
 	return (
 		<React.Fragment>
 			<TableRow className={classes.row}>
@@ -130,7 +138,7 @@ const Row = ( props ) => {
 				}
 				<TableCell>
 					{transactions.length > 0 && 
-						<Link href={"https://bico.media/" + chooseLink().tx_id} target="_blank"><BSVLogo className={classes.logo} /></Link>
+						<BSVLogo className={classes.logo} onClick={() => window.open('https://bico.media/' + mostRecentB().tx_id)}/>
 					}
 				</TableCell>
 			</TableRow>
