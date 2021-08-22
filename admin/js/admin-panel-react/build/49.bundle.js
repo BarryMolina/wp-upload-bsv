@@ -1,0 +1,1 @@
+(self.webpackChunkadmin_panel_react=self.webpackChunkadmin_panel_react||[]).push([[49],{5049:()=>{console.log("hello from invisibleMB"),console.log(wpbsv_ajax_obj),console.log(wp.data.select("core/editor")),console.log(wp.data.select("core/editor").getCurrentPost())}}]);
