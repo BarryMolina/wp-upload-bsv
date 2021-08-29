@@ -147,4 +147,13 @@ class Wp_Upload_Bsv_Admin {
  
     printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
 	}
+
+	public function test_send_json() {
+		$test_data = '{"postIds":["214","217"],"prefixes":["19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut","Gendale"],"filetype":"text/markdown","encoding":"utf-8"}';
+		$test_array = json_decode($test_data, true);
+		// print_r($test_array);
+		$this->tx_builder->send_json_posts($test_array);
+
+
+	}
 }

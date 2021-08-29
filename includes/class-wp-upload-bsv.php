@@ -192,6 +192,10 @@ class Wp_Upload_Bsv {
 
 		// Auto upload posts
 		$this->loader->add_action( 'transition_post_status', $plugin_admin, 'auto_upload_post', 10, 3 );
+
+		// Test 
+		// $this->loader->add_action( 'admin_init', $plugin_admin, 'test_send_json' );
+
 	}
 
 	/**

@@ -87,7 +87,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 
 		foreach ($prefixes as $prefix) {
 			// Build new tx data for each prefix
-			$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
+			$tx_data = $this->build_tx_data($prefix, $markdown, 'text/markdown', 'utf-8');
 			if (!is_wp_error($tx_data)) {
 				// Link tx data to post
 				$data_to_send[$post_id][] = $tx_data;
@@ -108,6 +108,92 @@ class Wp_Upload_Bsv_Tx_Builder {
 		}
 	}
 
+	public function send_json_posts($post_data) {
+		if (empty($post_data['postIds'])) {
+      return new WP_Error('missing_posts', 'Post data must be in the form [postIds] => [0, 1, 2]', array('status' => 400));
+		}
+
+		$data_to_send = array();
+
+		foreach ($post_data['postIds'] as $post_id) {
+			$post = $this->post_from_id($post_id);
+			$json = $this->json_from_post($post);
+
+			// Initialize array for this post
+			$data_to_send[$post_id] = array();
+			
+			foreach ($post_data['prefixes'] as $prefix) {
+				// Build data for each transaction
+				$tx_data = $this->build_tx_data($prefix, $json, 'application/json', 'utf-8');
+
+				if (!is_wp_error($tx_data)) {
+					// Link tx data to post
+					$data_to_send[$post_id][] = $tx_data;
+				}
+			}
+		}
+
+		// Send transaction
+		$response = $this->send_transaction($data_to_send);
+
+		// If transaction was successful
+		if (!is_wp_error($response)) {
+			// Return the newly saved transactions as JSON
+			return $this->save_transactions($response, $post_data);
+		}
+		return $response;
+
+	}
+
+	public function send_markdown_posts($post_data) {
+		if (empty($post_data['postIds'])) {
+      return new WP_Error('missing_posts', 'Post data must be in the form [postIds] => [0, 1, 2]', array('status' => 400));
+		}
+
+		$data_to_send = array();
+
+		foreach ($post_data['postIds'] as $post_id) {
+			$markdown = $this->markdown_from_id($post_id);
+
+			// Initialize array for this post
+			$data_to_send[$post_id] = array();
+			
+			foreach ($post_data['prefixes'] as $prefix) {
+				// Build data for each transaction
+				$tx_data = $this->build_tx_data($prefix, $markdown, 'text/markdown', 'utf-8');
+
+				if (!is_wp_error($tx_data)) {
+					// Link tx data to post
+					$data_to_send[$post_id][] = $tx_data;
+				}
+			}
+		}
+		// Send transaction
+		$response = $this->send_transaction($data_to_send);
+
+		// If transaction was successful
+		if (!is_wp_error($response)) {
+			// Return the newly saved transactions as JSON
+			return $this->save_transactions($response, $post_data);
+		}
+		return $response;
+	}
+
+	private function save_transactions($response, $post_data) {
+			// Parse the txid data
+			$post_txids = json_decode($response['body'], true);
+			
+			$response_data = array();
+			// Create entries in transactions table
+			foreach ($post_txids as $post_id => $txids) {
+				for ($i = 0; $i < count($txids); $i++) {
+					$tx_info = $this->db->insert_tx($post_id, $txids[$i], $post_data['prefixes'][$i], current_time('mysql'));
+					$response_data[] = $tx_info;
+				}
+			}
+			return $response_data;
+	}
+
 	public function send_many($postData) {
 		if (empty($postData['postIds'])) {
       return new WP_Error('missing_posts', 'Post data must be in the form [postIds] => [0, 1, 2]', array('status' => 400));
@@ -123,7 +209,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 			
 			foreach ($postData['prefixes'] as $prefix) {
 				// Build data for each transaction
-				$tx_data = $this->build_tx_data($markdown, $prefix, 'text/markdown', 'utf-8');
+				$tx_data = $this->build_tx_data($prefix, $markdown, 'text/markdown', 'utf-8');
 
 				if (!is_wp_error($tx_data)) {
 					// Link tx data to post
@@ -163,7 +249,7 @@ class Wp_Upload_Bsv_Tx_Builder {
 	 * @param 	string 							$encoding			Optional encoding
 	 * @return 	array															The transaction data
 	 */
-	private function build_tx_data($content, $prefix='', $file_type='', $encoding='') {
+	private function build_tx_data($prefix='', $content, $file_type='', $encoding='') {
 		$data = array($prefix, $content, $file_type, $encoding);
 		// Remove falsy elements
 		array_filter($data);
@@ -187,13 +273,16 @@ class Wp_Upload_Bsv_Tx_Builder {
 		return $this->markdown_from_post($post);
 	}
 
+	private function post_from_id($post_id) {
+		return get_post($post_id, OBJECT, 'display');
+	}
 	/**
 	 * Create markdown from post object
 	 *
 	 * @param 		WP_Post 		$post					The post to convert
 	 * @return 		string 			$markdown			The post markdown
 	 */
-	private function markdown_from_post($post) {
+	private function markdown_from_post_old($post) {
 		$title = get_the_title($post);
 
 		$meta = array(
@@ -227,6 +316,57 @@ class Wp_Upload_Bsv_Tx_Builder {
 		$markdown = $converter->convert($content);
 
 		return $frontmatter . $title_md . $markdown;
+	}
+
+	private function markdown_from_post($post) {
+		$meta = $this->build_post_meta($post);
+		$content = $this->get_post_content($post);
+
+		$frontmatter = '<!--';
+		foreach ($meta as $key => $value) {
+			$frontmatter .= "\n$key: \"$value\"";
+		}
+		$frontmatter .= "\n-->\n\n";
+
+		// Set converter options
+		$converter_options = array(
+			'strip_tags' => true,
+		);
+		// Instantiate converter
+		$converter = new League\HTMLToMarkdown\HtmlConverter($converter_options);
+
+		// Title markdown
+		$title_md = "# $title\n\n";
+
+		// Content to markdown
+		$markdown = $converter->convert($content);
+
+		return $frontmatter . $title_md . $markdown;
+	}
+
+	private function json_from_post($post) {
+		$post_data = $this->build_post_meta($post);
+		$content = $this->get_post_content($post);
+
+		$post_data['content'] = $content;
+
+		return json_encode($post_data);
+	}
+
+	private function build_post_meta($post) {
+
+		return array(
+			'title' 				=> get_the_title($post),
+			'author' 				=> get_the_author_meta('display_name', $post->post_author),
+			'slug' 					=> $post->post_name,
+			'published_gmt' => $post->post_date_gmt,
+			'modified_gmt' 	=> $post->post_modified_gmt,
+			'tx_date_gmt' 	=> gmdate('Y-m-d H:i:s'),
+		);
+	}
+
+	private function get_post_content($post) {
+		return apply_filters('the_content', $post->post_content);
 	}
 
 	/**

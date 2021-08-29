@@ -126,7 +126,8 @@ class Wp_Upload_Bsv_API_Controller {
 		// Get the parsed JSON request body as array
 		$postData = $request->get_json_params();
 
-		$response = $this->tx_builder->send_many($postData);
+		// $response = $this->tx_builder->send_many($postData);
+		$response = $this->tx_builder->send_json_posts($postData);
 		return $response;
 	}
 }

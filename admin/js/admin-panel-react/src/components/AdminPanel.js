@@ -163,7 +163,7 @@ const Row = ( props ) => {
 												<TableRow key={tx.id}>
 													<TableCell>{moment(tx.time).format("MM/DD/YYYY [at] h:mm:ss a")}</TableCell>
 													<TableCell>{tx.prefix}</TableCell>
-													<TableCell><Link href={`https://bico.media/${tx.tx_id}`} target="_blank">{tx.tx_id}</Link></TableCell>
+													<TableCell><Link href={`https://whatsonchain.com/tx/${tx.tx_id}`} target="_blank">{tx.tx_id}</Link></TableCell>
 												</TableRow>
 											))}
 										</TableBody>
@@ -210,7 +210,7 @@ const AdminPanel = (props) => {
 	const [loading, setLoading] = useState(false)
 
 	useEffect( () => {
-		axios.get(wpURL + 'wp/v2/posts')
+		axios.get(wpURL + 'wp/v2/posts?per_page=50')
 			.then( res => {
 				// console.log(res)
 				const postData = res.data
@@ -228,7 +228,7 @@ const AdminPanel = (props) => {
 						let authorNames = {}
 						// Add author names to post data
 						authorIds.forEach( (id, idx) => authorNames[id] = users[idx].name)
-						postData.forEach(post => post.author_name = authorNames[post.author])
+							postData.forEach(post => post.author_name = authorNames[post.author])
 						setPosts(postData)
 					})
 					.catch( err => {
